@@ -29,9 +29,10 @@ const NUMBER_PROP_LIST = [
 const OTHER_PROP_LIST = [
   'type',
   'event_index',
+  'event_datetime',
 ];
 
-const EVENT_PROP_LIST = _.union(TAXONOMY_PROP_LIST,
+const EVENT_PROP_LIST = _.union(STRING_PROP_LIST,
   NUMBER_PROP_LIST,OTHER_PROP_LIST);
 
 let g_isReady = false;
@@ -185,7 +186,7 @@ function _generateRandomString() {
 
 function _maybeAddDau() {
   const delta = Date.now() - g_lastDAUTime;
-  if (g_lastDAUTime > 24*60*60*1000) {
+  if (delta > 24*60*60*1000) {
     _internalEventAdd({ type: "dau" });
     g_lastDAUTime = Date.now();
     _setStoredItem('dc.last_dau_time',g_lastDAUTime);
@@ -194,18 +195,21 @@ function _maybeAddDau() {
 
 function _internalEventAdd(props) {
   props.event_index = g_nextIndex++;
+  if (!props.event_datetime) {
+    props.event_datetime = (new Date()).toISOString();
+  }
 
   if (g_sessionKey) {
     props.group_tag = g_sessionKey;
   }
-  _.each(STRING_PROPERTY_LIST,(p) => {
+  _.each(STRING_PROP_LIST,(p) => {
     if (p in props) {
       let val = props[p];
       val.toString().slice(0,32);
       props[p] = val;
     }
   });
-  _.each(NUMBER_PROPERTY_LIST,(p) => {
+  _.each(NUMBER_PROP_LIST,(p) => {
     if (p in props) {
       let val = props[p];
       if (typeof val != 'number') {
@@ -220,6 +224,7 @@ function _internalEventAdd(props) {
   });
   props = _.pick(props,EVENT_PROP_LIST);
   g_eventList.push(props);
+  _setStoredItem('dc.event_list',g_eventList);
   _sendEventsLater();
 }
 
@@ -238,23 +243,27 @@ function _sendEvents() {
     const bundle = _.extend({},g_defaultBundle,{
       api_key: g_apiKey,
       app_ver: g_appVer,
+      device_tag: g_deviceTag,
     });
     if (g_userTag) {
       bundle.user_tag = g_userTag;
     }
     bundle.events = [];
     let first_event = false;
-    _.some((e) => {
+    _.some(g_eventList,(e) => {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
       } else if (first_event.session_key == e.session_key) {
         bundle.events.push(e);
-      });
+      }
       return bundle.events.length < EVENT_SEND_COUNT;
     });
 
-    const url = 'https://api.data-cortex.com/' + g_orgName + '/1/track'
+    const current_time = encodeURIComponent((new Date()).toISOString());
+    const url = 'https://api.data-cortex.com/'
+      + g_orgName + '/1/track'
+      + "?current_time=" + current_time;
 
     const opts = {
       url: url,
@@ -262,13 +271,13 @@ function _sendEvents() {
       body: bundle,
     };
 
-    _request(bundle,(err,status,body) => {
+    _request(opts,(err,status,body) => {
       let remove = true;
       if (err == 'status') {
         if (status == 400) {
-          errorLog("Bad request, please check parameters, error:",body);
+          _errorLog("Bad request, please check parameters, error:",body);
         } else if (status == 403) {
-          errorLog("Bad API Key, error:",body);
+          _errorLog("Bad API Key, error:",body);
           g_isReady = false;
         } else if (status == 409) {
           // Dup send?
