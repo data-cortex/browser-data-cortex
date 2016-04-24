@@ -1,0 +1,17 @@
+{
+  "name": "browser-data-cortex",
+  "version": "0.0.1",
+  "description": "Easy integration with Data Cortex from a browser",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:data-cortex/browser-data-cortex.git"
+  },
+  "author": {
+    "name": "Jim Lake"
+  },
+  "license": "BSD",
+  "dependencies": {
+    "lodash": "3.x"
+  }
+}
