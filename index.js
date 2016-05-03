@@ -172,9 +172,9 @@ function _generateRandomString() {
   if (crypto && crypto.getRandomValues) {
     const array = new Uint32Array(8);
     crypto.getRandomValues(array);
-    array.forEach((e) => {
-      text += e.toString(36);
-    });
+    for (let i = 0 ; i < array.length ; i++) {
+      text += array[i].toString(36);
+    }
   } else {
     while (text.length < 32) {
       text += Math.random().toString(36).slice(2);
