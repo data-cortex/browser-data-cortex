@@ -35,6 +35,10 @@ const OTHER_PROP_LIST = [
 const EVENT_PROP_LIST = _.union(STRING_PROP_LIST,
   NUMBER_PROP_LIST,OTHER_PROP_LIST);
 
+const API_BASE_URL = "https://api.data-cortex.com";
+
+let g_apiBaseUrl = API_BASE_URL;
+
 let g_isReady = false;
 let g_isSending = false;
 let g_timeout = false;
@@ -62,6 +66,8 @@ function init(opts,done) {
   if (!done) {
     done = function() {};
   }
+  g_apiBaseUrl = opts.base_url || _getStoredItem('dc.base_url',false) || API_BASE_URL;
+
   g_apiKey = opts.api_key;
   g_orgName = opts.org_name;
   g_appVer = opts.app_ver || "0";
@@ -261,8 +267,8 @@ function _sendEvents() {
     });
 
     const current_time = encodeURIComponent((new Date()).toISOString());
-    const url = 'https://api.data-cortex.com/'
-      + g_orgName + '/1/track'
+    const url = g_apiBaseUrl
+      + '/' + g_orgName + '/1/track'
       + "?current_time=" + current_time;
 
     const opts = {
@@ -319,7 +325,7 @@ function _request(args,done) {
     body = args.body;
   } else if (args.body) {
     body = JSON.stringify(args.body);
-    default_headers['Content-Type'] = 'application/json';
+    default_headers['Content-Type'] = 'text/plain';
   }
   const headers = _.extend({},default_headers,args.headers);
 
