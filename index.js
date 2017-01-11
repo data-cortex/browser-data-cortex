@@ -465,6 +465,7 @@ function _setupDefaultBundle() {
   g_defaultBundle.browser = browser;
   g_defaultBundle.browser_ver = browser_ver;
   g_defaultBundle.device_type = device_type;
+  g_defaultBundle.device_family = device_type;
 }
 
 export default {
