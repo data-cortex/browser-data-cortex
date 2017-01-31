@@ -422,7 +422,10 @@ function _setupDefaultBundle() {
 
   let browser = "unknown";
   let browser_ver = "unknown";
-  if (ua.indexOf("Chrome") != -1) {
+  if (ua.indexOf("Edge") != -1) {
+    browser = "edge";
+    browser_ver = regexGet(ua,/Edge\/([^ ;)]*)/,"unknown");
+  } else if (ua.indexOf("Chrome") != -1) {
     browser = "chrome";
     browser_ver = regexGet(ua,/Chrome\/([^ ;)]*)/,"unknown");
   } else if (ua.indexOf("CriOS") != -1) {
@@ -458,6 +461,8 @@ function _setupDefaultBundle() {
     } else {
       device_type = "android_tablet";
     }
+  } else if (ua.indexOf("Mobile") != -1) {
+    device_type = "mobile";
   }
 
   g_defaultBundle.os = os;
