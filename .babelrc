@@ -1,0 +1,12 @@
+{
+  "presets": [[
+    "env",
+    {
+      "modules": false,
+      "targets": {
+        "browsers": ["> 1%", "not ie < 10", "android >= 4.2"]
+      }
+    }
+  ]],
+  "plugins": [ "external-helpers" ]
+}

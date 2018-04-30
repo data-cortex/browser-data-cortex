@@ -1,8 +1,7 @@
 {
   "name": "browser-data-cortex",
-  "version": "0.0.5",
+  "version": "0.0.9",
   "description": "Easy integration with Data Cortex from a browser",
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:data-cortex/browser-data-cortex.git"
@@ -10,8 +9,28 @@
   "author": {
     "name": "Jim Lake"
   },
-  "license": "BSD",
+  "license": "MIT",
+  "scripts": {
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build"
+  },
+  "main": "dist/browser-data-cortex.min.js",
+  "module": "dist/browser-data-cortex.min.js",
+  "browser": "dist/browser-data-cortex.min.js",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "lodash": "3.x"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-env": "^1.6.1",
+    "rollup": "^0.58.2",
+    "rollup-plugin-babel": "^3.0.4",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-replace": "^2.0.0",
+    "rollup-plugin-uglify": "^3.0.0"
   }
 }

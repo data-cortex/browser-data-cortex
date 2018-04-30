@@ -1,8 +1,7 @@
 'use strict';
 
-import _ from 'lodash';
-
 const EVENT_SEND_COUNT = 10;
+const LOG_SEND_COUNT = 10;
 const DELAY_MS = 2*1000;
 
 const STRING_PROP_LIST = [
@@ -32,8 +31,10 @@ const OTHER_PROP_LIST = [
   'event_datetime',
 ];
 
-const EVENT_PROP_LIST = _.union(STRING_PROP_LIST,
-  NUMBER_PROP_LIST,OTHER_PROP_LIST);
+const EVENT_PROP_LIST = _union(
+  STRING_PROP_LIST,
+  NUMBER_PROP_LIST,
+  OTHER_PROP_LIST);
 
 const API_BASE_URL = "https://api.data-cortex.com";
 
@@ -58,6 +59,8 @@ let g_delayCount = 0;
 
 const g_defaultBundle = {};
 
+let g_logList = [];
+
 function _errorLog(...args) {
   console.error("Data Cortex Error:",...args);
 }
@@ -80,6 +83,8 @@ function init(opts,done) {
       g_nextIndex = e.event_index + 1;
     }
   });
+
+  g_logList = _getStoredItem('dc.log_list',[]);
 
   g_lastDAUTime = _getStoredItem('dc.last_dau_time',0);
   g_deviceTag = _getDeviceTag();
@@ -208,14 +213,14 @@ function _internalEventAdd(props) {
   if (g_sessionKey) {
     props.group_tag = g_sessionKey;
   }
-  _.each(STRING_PROP_LIST,(p) => {
+  STRING_PROP_LIST.forEach((p) => {
     if (p in props) {
       let val = props[p];
       val.toString().slice(0,32);
       props[p] = val;
     }
   });
-  _.each(NUMBER_PROP_LIST,(p) => {
+  NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
       let val = props[p];
       if (typeof val != 'number') {
@@ -228,7 +233,7 @@ function _internalEventAdd(props) {
       }
     }
   });
-  props = _.pick(props,EVENT_PROP_LIST);
+  props = _pick(props,EVENT_PROP_LIST);
   g_eventList.push(props);
   _setStoredItem('dc.event_list',g_eventList);
   _sendEventsLater();
@@ -246,7 +251,7 @@ function _sendEvents() {
   if (g_isReady && !g_isSending && g_eventList.length > 0) {
     g_isSending = true;
 
-    const bundle = _.extend({},g_defaultBundle,{
+    const bundle = Object.assign({},g_defaultBundle,{
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
@@ -256,7 +261,7 @@ function _sendEvents() {
     }
     bundle.events = [];
     let first_event = false;
-    _.some(g_eventList,(e) => {
+    g_eventList.some((e) => {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
@@ -327,7 +332,7 @@ function _request(args,done) {
     body = JSON.stringify(args.body);
     default_headers['Content-Type'] = 'text/plain';
   }
-  const headers = _.extend({},default_headers,args.headers);
+  const headers = Object.assign({},default_headers,args.headers);
 
   const url = args.url;
   const xhr = new XMLHttpRequest();
@@ -361,7 +366,7 @@ function _request(args,done) {
 
   xhr.open(method,url,true);
 
-  _.each(headers,(values,name) => {
+  _objectEach(headers,(values,name) => {
     if (!Array.isArray(values)) {
       values = [values];
     }
@@ -375,8 +380,8 @@ function _request(args,done) {
 
 
 function _removeEvents(event_list) {
-  g_eventList = _.filter(g_eventList,(e) => {
-    return !_.some(event_list,(e2) => {
+  g_eventList = g_eventList.filter(e => {
+    return !event_list.some(e2 => {
       return e.event_index == e2.event_index;
     });
   });
@@ -422,30 +427,36 @@ function _setupDefaultBundle() {
 
   let browser = "unknown";
   let browser_ver = "unknown";
-  if (ua.indexOf("Edge") != -1) {
+  if (ua.indexOf("Edge") !== -1) {
     browser = "edge";
     browser_ver = regexGet(ua,/Edge\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("Chrome") != -1) {
+  } else if (ua.indexOf("Chrome") !== -1) {
     browser = "chrome";
     browser_ver = regexGet(ua,/Chrome\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("CriOS") != -1) {
+  } else if (ua.indexOf("CriOS") !== -1) {
     browser = "chrome";
     browser_ver = regexGet(ua,/CriOS\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("Firefox") != -1) {
+  } else if (ua.indexOf("Firefox") !== -1) {
     browser = "firefox";
     browser_ver = regexGet(ua,/Firefox\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("Android") != -1) {
+  } else if (ua.indexOf("Android") !== -1) {
     browser = "android";
     browser_ver = regexGet(ua,/Version\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("Safari") != -1) {
+  } else if (ua.indexOf("Safari") !== -1) {
     browser = "safari";
     browser_ver = regexGet(ua,/Version\/([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("Trident") != -1) {
+  } else if (ua.indexOf("Trident") !== -1) {
     browser = "ie";
     browser_ver = regexGet(ua,/rv:([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("MSIE") != -1) {
+  } else if (ua.indexOf("MSIE") !== -1) {
     browser = "ie";
     browser_ver = regexGet(ua,/MSIE ([^ ;)]*)/,"unknown");
+  } else if (ua.indexOf("MessengerForiOS") !== -1) {
+    browser = "fbmessenger";
+    browser_ver = regexGet(ua,/FBAV\/([^ ;)]*)/,"unknown");
+  } else if (ua.indexOf("FB_IAB/MESSENGER") !== -1) {
+    browser = "fbmessenger";
+    browser_ver = regexGet(ua,/FBAV\/([^ ;)]*)/,"unknown");
   }
 
   let device_type = "desktop";
@@ -473,10 +484,205 @@ function _setupDefaultBundle() {
   g_defaultBundle.device_family = device_type;
 }
 
-export default {
+function log() {
+  if (!arguments || arguments.length == 0) {
+    throw new Error('log must have arguments');
+  }
+  let log_line = "";
+  for (let i = 0 ; i < arguments.length ; i++) {
+    const arg = arguments[i];
+    if (i > 0) {
+      log_line += " ";
+    }
+
+    if (_isError(arg)) {
+      log_line += arg.stack;
+    } else if (typeof arg == 'object') {
+      try {
+        log_line += JSON.stringify(arg);
+      } catch(e) {
+        log_line += arg;
+      }
+    } else {
+      log_line += arg;
+    }
+  }
+  logEvent({ log_line });
+}
+
+const LOG_NUMBER_PROP_LIST = [
+  'repsonse_bytes',
+  'response_ms',
+];
+
+const LOG_STRING_PROP_MAP = {
+  'hostname': 64,
+  'filename': 256,
+  'log_level': 64,
+  'device_tag': 62,
+  'user_tag': 62,
+  'remote_address': 64,
+  'log_line': 65535,
+};
+
+const LOG_OTHER_PROP_LIST = [
+  'event_datetime',
+];
+
+const LOG_PROP_LIST = _union(
+  LOG_NUMBER_PROP_LIST,
+  Object.keys(LOG_STRING_PROP_MAP),
+  LOG_OTHER_PROP_LIST,
+);
+
+function logEvent(props) {
+  if (!props || typeof props !== 'object') {
+    throw new Error('props must be an object.');
+  }
+
+  if (!props.event_datetime) {
+    props.event_datetime = (new Date()).toISOString();
+  }
+
+  _objectEach(LOG_STRING_PROP_MAP,(max_len,p) => {
+    if (p in props) {
+      let val = props[p];
+      val.toString().slice(0,max_len);
+      props[p] = val;
+    }
+  });
+  LOG_NUMBER_PROP_LIST.forEach(p => {
+    if (p in props) {
+      let val = props[p];
+      if (typeof val !== 'number') {
+        val = parseFloat(val);
+      }
+      if (!isFinite(val)) {
+        delete props[val];
+      } else {
+        props[p] = val;
+      }
+    }
+  });
+  props = _pick(props,LOG_PROP_LIST);
+  g_logList.push(props);
+  _setStoredItem('dc.log_list',g_logList);
+  _sendLogsLater();
+}
+
+function _removeLogs(events) {
+  g_logList.splice(0,events.length);
+  _setStoredItem('dc.log_list',g_logList);
+}
+
+function _isError(e) {
+  return e && e.stack && e.message
+    && typeof e.stack === 'string'
+    && typeof e.message === 'string';
+}
+
+let g_logTimeout = false;
+let g_isLogSending = false;
+let g_logDelayCount = 0;
+
+function _sendLogsLater(delay = 0) {
+  if (!g_logTimeout && g_isReady && !g_isLogSending) {
+    g_logTimeout = window.setTimeout(() => {
+      g_logTimeout = false;
+      _sendLogs();
+    },delay);
+  }
+}
+function _sendLogs() {
+  if (g_isReady && !g_isLogSending && g_logList.length > 0) {
+    g_isLogSending = true;
+
+    const bundle = Object.assign({},g_defaultBundle,{
+      api_key: g_apiKey,
+      app_ver: g_appVer,
+      device_tag: g_deviceTag,
+    });
+    if (g_userTag) {
+      bundle.user_tag = g_userTag;
+    }
+    bundle.events = g_logList.slice(0,LOG_SEND_COUNT);
+
+    const url = g_apiBaseUrl + '/' + g_orgName + '/1/app_log'
+
+    const opts = {
+      url: url,
+      method: 'POST',
+      body: bundle,
+    };
+
+    _request(opts,(err,status,body) => {
+      let remove = true;
+      if (err == 'status') {
+        if (status == 400) {
+          _errorLog("Bad request, please check parameters, error:",body);
+        } else if (status == 403) {
+          _errorLog("Bad API Key, error:",body);
+        } else if (status == 409) {
+          // Dup send?
+        } else {
+          remove = false;
+          g_logDelayCount++;
+        }
+      } else if (err) {
+        remove = false;
+        g_logDelayCount++;
+      } else {
+        g_logDelayCount = 0;
+      }
+      if (remove) {
+        _removeLogs(bundle.events);
+      }
+
+      g_isLogSending = false;
+      if (g_logList.length > 0) {
+        _sendLogsLater(g_logDelayCount * DELAY_MS);
+      }
+    });
+  }
+}
+
+function _objectEach(object,callback) {
+  Object.keys(object).forEach(key => {
+    const value = object[key];
+    callback(value,key,object);
+  })
+}
+
+function _pick(source,keys) {
+  const dest = {};
+  keys.forEach(key => {
+    if (key in source) {
+      dest[key] = source[key];
+    }
+  })
+  return dest;
+}
+
+function _union() {
+  const dest = [];
+
+  for (let i = 0 ; i < arguments.length ; i++) {
+    const array = arguments[i];
+    Array.prototype.push.apply(dest, array);
+  }
+
+  return dest;
+}
+
+const DataCortex = {
   init,
   isReady,
   addUserTag,
   event,
   economyEvent,
+  log,
+  logEvent,
 };
+window.DataCortex = DataCortex;
+
+export default DataCortex;
