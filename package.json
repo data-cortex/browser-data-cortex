@@ -1,6 +1,6 @@
 {
   "name": "browser-data-cortex",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "Easy integration with Data Cortex from a browser",
   "repository": {
     "type": "git",

@@ -97,8 +97,19 @@ function init(opts,done) {
   _setupDefaultBundle();
   g_isReady = true;
   _sendEventsLater();
+
+  if (opts.add_error_handler) {
+    window.addEventListener('error',_onError);
+  }
+
   done();
 }
+function _onError(e) {
+  if (e) {
+    log("Javascript Error: message:",e.message,"error:",e.error);
+  }
+}
+
 function isReady() {
   return g_isReady;
 }
@@ -409,6 +420,10 @@ function _setupDefaultBundle() {
   } else if (ua.indexOf("iPhone OS") != -1) {
     os = "ios";
     os_ver = regexGet(ua,/iPhone OS ([^ ;)]*)/,"unknown");
+    os_ver = os_ver.replace(/_/g,'.');
+  } else if (ua.indexOf("iPad") != -1) {
+    os = "ios";
+    os_ver = regexGet(ua,/CPU OS ([^ ;)]*)/,"unknown");
     os_ver = os_ver.replace(/_/g,'.');
   } else if (ua.indexOf("Mac OS X") != -1) {
     os = "mac";
