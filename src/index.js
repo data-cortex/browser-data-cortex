@@ -1,8 +1,7 @@
-'use strict';
 
 const EVENT_SEND_COUNT = 10;
 const LOG_SEND_COUNT = 10;
-const DELAY_MS = 2*1000;
+const DELAY_MS = 2 * 1000;
 
 const STRING_PROP_LIST = [
   'kingdom',
@@ -66,9 +65,6 @@ function _errorLog(...args) {
 }
 
 function init(opts,done) {
-  if (!done) {
-    done = function() {};
-  }
   g_apiBaseUrl = opts.base_url || _getStoredItem('dc.base_url',false) || API_BASE_URL;
 
   g_apiKey = opts.api_key;
@@ -92,7 +88,7 @@ function init(opts,done) {
     g_sessionKey = _generateRandomString();
   }
   _maybeAddDau();
-  window.setInterval(_maybeAddDau,12*60*60*1000);
+  window.setInterval(_maybeAddDau,12 * 60 * 60 * 1000);
 
   _setupDefaultBundle();
   g_isReady = true;
@@ -102,7 +98,7 @@ function init(opts,done) {
     window.addEventListener('error',_onError);
   }
 
-  done();
+  done && done();
 }
 function _onError(e) {
   if (e) {
@@ -115,10 +111,7 @@ function isReady() {
 }
 
 function addUserTag(userTag) {
-  if (userTag && typeof userTag != 'string') {
-    userTag = userTag.toString();
-  }
-  g_userTag = userTag;
+  g_userTag = userTag && userTag.toString();
   _setStoredItem('dc.user_tag',g_userTag);
 }
 
@@ -127,22 +120,22 @@ function event(props) {
     throw new Error('props must be an object');
   }
   props.type = "event";
-  _internalEventAdd(props);
+  return _internalEventAdd(props);
 }
 
 function economyEvent(props) {
-  if (!props || typeof props != 'object') {
+  if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
   if (!props.spend_currency) {
     throw new Error('spend_currency is required');
   }
-  if (typeof props.spend_amount != 'number') {
+  if (typeof props.spend_amount !== 'number') {
     throw new Error('spend_amount is required');
   }
 
   props.type = "economy";
-  _internalEventAdd(props);
+  return _internalEventAdd(props);
 }
 
 function _getStoredItem(name,def) {
@@ -151,13 +144,13 @@ function _getStoredItem(name,def) {
     const json = window.localStorage[name];
     try {
       ret = JSON.parse(json);
-    } catch(e) {
+    } catch (e) {
       _errorLog("Failed to parse:",name,"json:",json);
     }
   }
 
   if (ret === undefined) {
-   if (typeof def == 'function') {
+   if (typeof def === 'function') {
       ret = def();
     } else {
       ret = def;
@@ -194,7 +187,7 @@ function _generateRandomString() {
   if (crypto && crypto.getRandomValues) {
     const array = new Uint32Array(8);
     crypto.getRandomValues(array);
-    for (let i = 0 ; i < array.length ; i++) {
+    for (let i = 0; i < array.length; i++) {
       text += array[i].toString(36);
     }
   } else {
@@ -208,7 +201,7 @@ function _generateRandomString() {
 
 function _maybeAddDau() {
   const delta = Date.now() - g_lastDAUTime;
-  if (delta > 24*60*60*1000) {
+  if (delta > 24 * 60 * 60 * 1000) {
     _internalEventAdd({ type: "dau" });
     g_lastDAUTime = Date.now();
     _setStoredItem('dc.last_dau_time',g_lastDAUTime);
@@ -224,38 +217,44 @@ function _internalEventAdd(props) {
   if (g_sessionKey) {
     props.group_tag = g_sessionKey;
   }
-  STRING_PROP_LIST.forEach((p) => {
+  STRING_PROP_LIST.forEach(p => {
     if (p in props) {
-      let val = props[p];
-      val.toString().slice(0,32);
-      props[p] = val;
+      const val = props[p];
+      const s = val && val.toString();
+      if (s) {
+        props[p] = s.slice(0,32);
+      } else {
+        delete props[p];
+      }
     }
   });
-  NUMBER_PROP_LIST.forEach((p) => {
+  NUMBER_PROP_LIST.forEach(p => {
     if (p in props) {
       let val = props[p];
-      if (typeof val != 'number') {
+      if (typeof val !== 'number') {
         val = parseFloat(val);
       }
-      if (!isFinite(val)) {
-        delete props[val];
-      } else {
+      if (isFinite(val)) {
         props[p] = val;
+      } else {
+        delete props[p];
       }
     }
   });
-  props = _pick(props,EVENT_PROP_LIST);
-  g_eventList.push(props);
+
+  const e = _pick(props,EVENT_PROP_LIST);
+  g_eventList.push(e);
   _setStoredItem('dc.event_list',g_eventList);
   _sendEventsLater();
+  return e;
 }
 
-function _sendEventsLater(delay = 0) {
+function _sendEventsLater(delay) {
   if (!g_timeout && g_isReady && !g_isSending) {
     g_timeout = window.setTimeout(() => {
       g_timeout = false;
       _sendEvents();
-    },delay);
+    },delay || 0);
   }
 }
 function _sendEvents() {
@@ -272,36 +271,32 @@ function _sendEvents() {
     }
     bundle.events = [];
     let first_event = false;
-    g_eventList.some((e) => {
+    g_eventList.some(e => {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
-      } else if (first_event.session_key == e.session_key) {
+      } else if (first_event.session_key === e.session_key) {
         bundle.events.push(e);
       }
       return bundle.events.length < EVENT_SEND_COUNT;
     });
 
     const current_time = encodeURIComponent((new Date()).toISOString());
-    const url = g_apiBaseUrl
-      + '/' + g_orgName + '/1/track'
-      + "?current_time=" + current_time;
-
+    const url = `${g_apiBaseUrl}/${g_orgName}/1/track?current_time=${current_time}`;
     const opts = {
       url: url,
       method: 'POST',
       body: bundle,
     };
-
     _request(opts,(err,status,body) => {
       let remove = true;
-      if (err == 'status') {
-        if (status == 400) {
+      if (err === 'status') {
+        if (status === 400) {
           _errorLog("Bad request, please check parameters, error:",body);
-        } else if (status == 403) {
+        } else if (status === 403) {
           _errorLog("Bad API Key, error:",body);
           g_isReady = false;
-        } else if (status == 409) {
+        } else if (status === 409) {
           // Dup send?
         } else {
           remove = false;
@@ -326,14 +321,17 @@ function _sendEvents() {
 }
 
 function _request(args,done) {
+  let done_once = false;
   function request_done(...args) {
-    done(...args);
-    done = () => {};
+    if (!done_once) {
+      done_once = true;
+      done(...args);
+    }
   }
 
   const method = args.method;
 
-  let default_headers = {
+  const default_headers = {
     'Accept': 'application/json',
   };
   let body = null;
@@ -352,38 +350,39 @@ function _request(args,done) {
     xhr.timeout = args.timeout;
   }
 
-  xhr.onload = (...args) => {
-    let status = (xhr.status === 1223) ? 204 : xhr.status;
+  xhr.onload = () => {
+    // eslint-disable-next-line eqeqeq
+    const status = xhr.status == 1223 ? 204 : xhr.status;
     let body = false;
-    let json = false;
     let err = null;
 
     body = xhr.response || xhr.responseText;
 
-    if (status < 100 || status > 599) {
-      err = new TypeError('Network request failed');
-    } else if (status > 399) {
+    if (status < 200 || status > 599) {
+      err = 'wierd_status'
+    } else if (status >= 300) {
       err = 'status';
     }
     request_done(err,status,body);
   };
 
-  xhr.onerror = (...args) => {
-    request_done(new TypeError('Network request failed'));
+  xhr.onerror = () => {
+    request_done('xhr_error');
   };
-  xhr.ontimeout = (...args) => {
-    request_done("timeout");
-  }
+  xhr.ontimeout = () => {
+    request_done('timeout');
+  };
 
   xhr.open(method,url,true);
 
   _objectEach(headers,(values,name) => {
-    if (!Array.isArray(values)) {
-      values = [values];
+    if (Array.isArray(values)) {
+      values.forEach((value) => {
+        xhr.setRequestHeader(name, value);
+      });
+    } else {
+      xhr.setRequestHeader(name,values);
     }
-    values.forEach((value) => {
-      xhr.setRequestHeader(name, value);
-    });
   });
 
   xhr.send(body);
@@ -393,7 +392,7 @@ function _request(args,done) {
 function _removeEvents(event_list) {
   g_eventList = g_eventList.filter(e => {
     return !event_list.some(e2 => {
-      return e.event_index == e2.event_index;
+      return e.event_index === e2.event_index;
     });
   });
   _setStoredItem('dc.event_list',g_eventList);
@@ -414,29 +413,29 @@ function _setupDefaultBundle() {
 
   let os = "unknown";
   let os_ver = "unknown";
-  if (ua.indexOf("Win") != -1) {
+  if (ua.indexOf("Win") !== -1) {
     os = "windows";
     os_ver = regexGet(ua,/Windows NT ([^ ;)]*)/,"unknown");
-  } else if (ua.indexOf("iPhone OS") != -1) {
+  } else if (ua.indexOf("iPhone OS") !== -1) {
     os = "ios";
     os_ver = regexGet(ua,/iPhone OS ([^ ;)]*)/,"unknown");
     os_ver = os_ver.replace(/_/g,'.');
-  } else if (ua.indexOf("iPad") != -1) {
+  } else if (ua.indexOf("iPad") !== -1) {
     os = "ios";
     os_ver = regexGet(ua,/CPU OS ([^ ;)]*)/,"unknown");
     os_ver = os_ver.replace(/_/g,'.');
-  } else if (ua.indexOf("Mac OS X") != -1) {
+  } else if (ua.indexOf("Mac OS X") !== -1) {
     os = "mac";
     os_ver = regexGet(ua,/Mac OS X ([^ ;)]*)/,"unknown");
     os_ver = os_ver.replace(/_/g,'.');
     os_ver = os_ver.replace(/\.0$/,'');
-  } else if (ua.indexOf("Android") != -1) {
+  } else if (ua.indexOf("Android") !== -1) {
     os = "android";
     os_ver = regexGet(ua,/Android ([^ ;)]*)/,"unknown");
     os_ver = os_ver.replace(/_/g,'.');
-  } else if (ua.indexOf("X11") != -1) {
+  } else if (ua.indexOf("X11") !== -1) {
     os = "unix";
-  } else if (ua.indexOf("Linux") != -1) {
+  } else if (ua.indexOf("Linux") !== -1) {
     os = "linux";
   }
 
@@ -475,19 +474,19 @@ function _setupDefaultBundle() {
   }
 
   let device_type = "desktop";
-  if (ua.indexOf("iPod") != -1) {
+  if (ua.indexOf("iPod") !== -1) {
     device_type = "ipod";
-  } else if (ua.indexOf("iPhone") != -1) {
+  } else if (ua.indexOf("iPhone") !== -1) {
     device_type = "iphone";
-  } else if (ua.indexOf("iPad") != -1 ) {
+  } else if (ua.indexOf("iPad") !== -1) {
     device_type = "ipad";
-  } else if (ua.indexOf("Android") != -1 ) {
-    if (ua.indexOf("Mobile") != -1) {
-      device_type = "android";
-    } else {
+  } else if (ua.indexOf("Android") !== -1) {
+    if (ua.indexOf("Mobile") === -1) {
       device_type = "android_tablet";
+    } else {
+      device_type = "android";
     }
-  } else if (ua.indexOf("Mobile") != -1) {
+  } else if (ua.indexOf("Mobile") !== -1) {
     device_type = "mobile";
   }
 
@@ -500,11 +499,11 @@ function _setupDefaultBundle() {
 }
 
 function log() {
-  if (!arguments || arguments.length == 0) {
+  if (!arguments || arguments.length === 0) {
     throw new Error('log must have arguments');
   }
   let log_line = "";
-  for (let i = 0 ; i < arguments.length ; i++) {
+  for (let i = 0; i < arguments.length; i++) {
     const arg = arguments[i];
     if (i > 0) {
       log_line += " ";
@@ -512,10 +511,10 @@ function log() {
 
     if (_isError(arg)) {
       log_line += arg.stack;
-    } else if (typeof arg == 'object') {
+    } else if (typeof arg === 'object') {
       try {
         log_line += JSON.stringify(arg);
-      } catch(e) {
+      } catch (e) {
         log_line += arg;
       }
     } else {
@@ -540,14 +539,12 @@ const LOG_STRING_PROP_MAP = {
   'log_line': 65535,
 };
 
-const LOG_OTHER_PROP_LIST = [
-  'event_datetime',
-];
+const LOG_OTHER_PROP_LIST = ['event_datetime',];
 
 const LOG_PROP_LIST = _union(
   LOG_NUMBER_PROP_LIST,
   Object.keys(LOG_STRING_PROP_MAP),
-  LOG_OTHER_PROP_LIST,
+  LOG_OTHER_PROP_LIST
 );
 
 function logEvent(props) {
@@ -561,9 +558,13 @@ function logEvent(props) {
 
   _objectEach(LOG_STRING_PROP_MAP,(max_len,p) => {
     if (p in props) {
-      let val = props[p];
-      val.toString().slice(0,max_len);
-      props[p] = val;
+      const val = props[p];
+      const s = val && val.toString();
+      if (s) {
+        props[p] = s.slice(0,max_len);
+      } else {
+        delete props[p];
+      }
     }
   });
   LOG_NUMBER_PROP_LIST.forEach(p => {
@@ -572,17 +573,19 @@ function logEvent(props) {
       if (typeof val !== 'number') {
         val = parseFloat(val);
       }
-      if (!isFinite(val)) {
-        delete props[val];
-      } else {
+      if (isFinite(val)) {
         props[p] = val;
+      } else {
+        delete props[p];
       }
     }
   });
-  props = _pick(props,LOG_PROP_LIST);
-  g_logList.push(props);
+
+  const e = _pick(props,LOG_PROP_LIST);
+  g_logList.push(e);
   _setStoredItem('dc.log_list',g_logList);
   _sendLogsLater();
+  return e;
 }
 
 function _removeLogs(events) {
@@ -591,9 +594,7 @@ function _removeLogs(events) {
 }
 
 function _isError(e) {
-  return e && e.stack && e.message
-    && typeof e.stack === 'string'
-    && typeof e.message === 'string';
+  return e && e.stack && e.message && typeof e.stack === 'string' && typeof e.message === 'string';
 }
 
 let g_logTimeout = false;
@@ -632,12 +633,12 @@ function _sendLogs() {
 
     _request(opts,(err,status,body) => {
       let remove = true;
-      if (err == 'status') {
-        if (status == 400) {
+      if (err === 'status') {
+        if (status === 400) {
           _errorLog("Bad request, please check parameters, error:",body);
-        } else if (status == 403) {
+        } else if (status === 403) {
           _errorLog("Bad API Key, error:",body);
-        } else if (status == 409) {
+        } else if (status === 409) {
           // Dup send?
         } else {
           remove = false;
@@ -681,7 +682,7 @@ function _pick(source,keys) {
 function _union() {
   const dest = [];
 
-  for (let i = 0 ; i < arguments.length ; i++) {
+  for (let i = 0; i < arguments.length; i++) {
     const array = arguments[i];
     Array.prototype.push.apply(dest, array);
   }
