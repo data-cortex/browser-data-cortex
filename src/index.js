@@ -49,6 +49,7 @@ let g_appVer = "0";
 
 let g_userTag = false;
 let g_eventList = [];
+let g_hasSendInstall = false;
 let g_lastDAUTime = 0;
 let g_sessionKey = false;
 let g_deviceTag = false;
@@ -83,10 +84,18 @@ function init(opts,done) {
   g_logList = _getStoredItem('dc.log_list',[]);
 
   g_lastDAUTime = _getStoredItem('dc.last_dau_time',0);
-  g_deviceTag = _getDeviceTag();
+  g_hasSendInstall = _getStoredItem('dc.has_sent_install',0) || Boolean(g_lastDAUTime);
+  if (opts.device_tag) {
+    g_deviceTag = opts.device_tag;
+    _setStoredItem('dc.device_tag',opts.device_tag);
+  } else {
+    g_deviceTag = _getDeviceTag();
+  }
   if (!g_sessionKey) {
     g_sessionKey = _generateRandomString();
   }
+
+  _maybeSendInstall();
   _maybeAddDau();
   window.setInterval(_maybeAddDau,12 * 60 * 60 * 1000);
 
@@ -168,6 +177,15 @@ function _getDeviceTag() {
   if (!text) {
     text = _generateRandomString();
     _setStoredItem('dc.device_tag',text);
+  }
+  return text;
+}
+
+function _maybeSendInstall() {
+  if (!g_hasSendInstall) {
+    g_hasSendInstall = true;
+     _setStoredItem('dc.has_sent_install',true);
+
     _internalEventAdd({
       type: 'install',
       kingdom: 'organic',
@@ -179,7 +197,6 @@ function _getDeviceTag() {
       species: 'organic',
     });
   }
-  return text;
 }
 function _generateRandomString() {
   let text = "";
