@@ -11,9 +11,14 @@ const STRING_PROP_LIST = [
   'family',
   'genus',
   'species',
-  'group_tag',
   'spend_currency',
   'spend_type',
+  'network',
+  'channel',
+];
+const LONG_STRING_PROP_LIST = [
+  'group_tag',
+  'from_tag',
 ];
 
 const NUMBER_PROP_LIST = [
@@ -28,12 +33,15 @@ const OTHER_PROP_LIST = [
   'type',
   'event_index',
   'event_datetime',
+  'to_list',
 ];
 
 const EVENT_PROP_LIST = _union(
   STRING_PROP_LIST,
+  LONG_STRING_PROP_LIST,
   NUMBER_PROP_LIST,
-  OTHER_PROP_LIST);
+  OTHER_PROP_LIST,
+);
 
 const API_BASE_URL = "https://api.data-cortex.com";
 
@@ -146,6 +154,32 @@ function economyEvent(props) {
   props.type = "economy";
   return _internalEventAdd(props);
 }
+function messageSendEvent(props) {
+  if (!props || typeof props !== 'object') {
+    throw new Error('props must be an object');
+  }
+  if (!props.from_tag) {
+    throw new Error('from_tag is required');
+  }
+  if (!props.to_tag && !props.to_list) {
+    throw new Error('to_tag or to_list is required');
+  }
+  if (props.to_list && !Array.isArray(props.to_list)) {
+    throw new Error('to_list must be an array.');
+  }
+  if (!props.to_list) {
+    props.to_list = [];
+  }
+  if (props.to_tag) {
+    props.to_list.push(props.to_tag);
+  }
+  if (props.to_list.length === 0) {
+    throw new Error('must have at least 1 in to_list or a to_tag');
+  }
+
+  props.type = "message_send";
+  return _internalEventAdd(props);
+}
 
 function _getStoredItem(name,def) {
   let ret;
@@ -237,9 +271,20 @@ function _internalEventAdd(props) {
   STRING_PROP_LIST.forEach(p => {
     if (p in props) {
       const val = props[p];
-      const s = val && val.toString();
+      const s = val && String(val);
       if (s) {
         props[p] = s.slice(0,32);
+      } else {
+        delete props[p];
+      }
+    }
+  });
+  LONG_STRING_PROP_LIST.forEach(p => {
+    if (p in props) {
+      const val = props[p];
+      const s = val && String(val);
+      if (s) {
+        props[p] = s.slice(0,64);
       } else {
         delete props[p];
       }
@@ -713,6 +758,7 @@ const DataCortex = {
   addUserTag,
   event,
   economyEvent,
+  messageSendEvent,
   log,
   logEvent,
 };
