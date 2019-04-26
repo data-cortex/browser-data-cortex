@@ -13,7 +13,7 @@ yarn add browser-data-cortex
 OR you can use an NPM CDN:
 
 ```html
-<script src='https://cdn.jsdelivr.net/npm/browser-data-cortex@0.0.15/dist/browser-data-cortex.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/browser-data-cortex@0.0.16/dist/browser-data-cortex.min.js'></script>
 ```
 
 ## Usage
