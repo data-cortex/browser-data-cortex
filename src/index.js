@@ -128,8 +128,12 @@ function isReady() {
 }
 
 function addUserTag(userTag) {
-  g_userTag = userTag && userTag.toString();
-  _setStoredItem('dc.user_tag',g_userTag);
+  g_userTag = userTag && String(userTag);
+  if (g_userTag) {
+    _setStoredItem('dc.user_tag',g_userTag);
+  } else {
+    _clearStoredItem('dc.user_tag');
+  }
 }
 
 function event(props) {
@@ -188,7 +192,7 @@ function _getStoredItem(name,def) {
     try {
       ret = JSON.parse(json);
     } catch (e) {
-      _errorLog("Failed to parse:",name,"json:",json);
+      //_errorLog("Failed to parse:",name,"json:",json);
     }
   }
 
@@ -204,6 +208,9 @@ function _getStoredItem(name,def) {
 function _setStoredItem(name,value) {
   const json = JSON.stringify(value);
   window.localStorage[name] = json;
+}
+function _clearStoredItem(name) {
+  delete window.localStorage[name];
 }
 
 function _getDeviceTag() {
