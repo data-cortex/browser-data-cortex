@@ -1,6 +1,6 @@
 {
   "name": "browser-data-cortex",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Easy integration with Data Cortex from a browser",
   "repository": {
     "type": "git",
@@ -12,8 +12,8 @@
   "license": "MIT",
   "scripts": {
     "build": "rollup -c",
-    "prepublishOnly": "npm run build",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "pretty": "prettier \"src/**/*.js\" --write"
   },
   "main": "dist/browser-data-cortex.min.js",
   "module": "dist/browser-data-cortex.min.js",
