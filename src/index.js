@@ -766,6 +766,10 @@ const DataCortex = {
   log,
   logEvent,
 };
-window.DataCortex = DataCortex;
+
+// Only set window.DataCortex if window is available (browser environment)
+if (typeof window !== 'undefined') {
+  window.DataCortex = DataCortex;
+}
 
 export default DataCortex;

@@ -10,10 +10,15 @@
     "name": "Jim Lake"
   },
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint src",
-    "pretty": "prettier \"src/**/*.js\" --write"
+    "pretty": "prettier \"src/**/*.js\" --write",
+    "test": "node test/unit.test.js",
+    "test:coverage": "node --experimental-test-coverage test/coverage.test.js",
+    "test:coverage-report": "node scripts/coverage-report.js",
+    "test:watch": "node --watch test/unit.test.js"
   },
   "main": "dist/browser-data-cortex.min.js",
   "module": "dist/browser-data-cortex.min.js",
@@ -23,15 +28,16 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-plugin-transform-object-assign": "^6.22.0",
-    "babel-preset-env": "^1.6.1",
-    "rollup": "^0.58.2",
-    "rollup-plugin-babel": "^3.0.4",
-    "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-replace": "^2.0.0",
-    "rollup-plugin-uglify": "^3.0.0"
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.23.8",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^8.56.0",
+    "jsdom": "^23.2.0",
+    "prettier": "^3.2.4",
+    "rollup": "^4.9.6"
   }
 }
