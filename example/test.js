@@ -39,7 +39,7 @@ let g_failCount;
 window.onload = _onLoad;
 function _onLoad() {
   const opts = {
-    api_key: "dYlBxjMTYkXadqhnOyHnjo7iGb5bW1y0",
+    api_key: window.localStorage.DC_API_KEY,
     org_name: "test",
   };
   DataCortex.init(opts);

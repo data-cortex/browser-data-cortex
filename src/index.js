@@ -64,7 +64,7 @@ function _errorLog(...args) {
   console.error('Data Cortex Error:', ...args);
 }
 
-function init(opts, done) {
+function init(opts) {
   g_apiBaseUrl =
     opts.base_url || _getStoredItem('dc.base_url', false) || API_BASE_URL;
 
@@ -107,8 +107,6 @@ function init(opts, done) {
   if (opts.add_error_handler) {
     window.addEventListener('error', _onError);
   }
-
-  done && done();
 }
 function _onError(e) {
   if (e) {
