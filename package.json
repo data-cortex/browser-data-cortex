@@ -14,7 +14,7 @@
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint src",
-    "pretty": "prettier \"src/**/*.js\" --write",
+    "pretty": "prettier -u --write \"**/*\" --log-level warn",
     "test": "node test/unit.test.js",
     "test:coverage": "node --experimental-test-coverage test/coverage.test.js",
     "test:coverage-report": "node scripts/coverage-report.js",

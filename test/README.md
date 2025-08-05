@@ -31,6 +31,7 @@ yarn test:watch
 The test suite uses Node.js's experimental built-in coverage feature (`--experimental-test-coverage`) to provide detailed code coverage analysis.
 
 ### Current Coverage Metrics
+
 - **Lines**: 82.87%
 - **Branches**: 91.13%
 - **Functions**: 80.33%
@@ -49,12 +50,14 @@ The test suite uses Node.js's experimental built-in coverage feature (`--experim
 The test suite covers:
 
 ### Core Functionality ✅
+
 - Library initialization with various options
 - Device tag generation and management
 - User tag management
 - Ready state checking
 
 ### Event Tracking ✅
+
 - Basic event tracking with all property types
 - String property truncation (32 and 64 character limits)
 - Number property conversion and validation
@@ -62,17 +65,20 @@ The test suite covers:
 - Property validation and error handling
 
 ### Economy Events ✅
+
 - Economy event tracking with required fields
 - Validation of spend_currency and spend_amount
 - Error handling for missing required fields
 
 ### Message Send Events ✅
+
 - Message events with to_tag and to_list
 - Combining to_tag and to_list arrays
 - Validation of from_tag requirement
 - Array validation for to_list
 
 ### Logging ✅
+
 - Simple message logging
 - Multiple argument logging
 - Error object logging with stack traces
@@ -80,18 +86,21 @@ The test suite covers:
 - Log event tracking with property limits
 
 ### Local Storage Integration ✅
+
 - Event persistence in localStorage
 - User tag persistence
 - State restoration on initialization
 - Event index continuation
 
 ### Browser Environment Handling ✅
+
 - Crypto API usage and fallback (including msCrypto)
 - Navigator user agent detection for multiple browsers
 - Custom device tag support
 - Custom base URL support
 
 ### Network Request Handling ✅
+
 - HTTP error status codes (400, 403, 409, 500)
 - Network timeout handling
 - Connection error handling
@@ -99,10 +108,12 @@ The test suite covers:
 - Request retry logic
 
 ### Automatic Events ✅
+
 - Install event generation on first use
 - DAU (Daily Active User) event handling
 
 ### Edge Cases ✅
+
 - Empty string property handling
 - Null and undefined value handling
 - Invalid parameter validation
@@ -123,21 +134,28 @@ The test suite uses Node.js's built-in test runner with:
 The coverage system generates several outputs:
 
 ### 1. Console Coverage Report
+
 ```bash
 yarn test:coverage
 ```
+
 Shows real-time coverage metrics in TAP format with detailed line-by-line coverage.
 
 ### 2. Detailed Coverage Report
+
 ```bash
 yarn test:coverage-report
 ```
+
 Generates:
+
 - `COVERAGE_REPORT.md` - Comprehensive markdown report
 - `coverage-badge.json` - Badge data for CI/CD systems
 
 ### 3. Coverage Badge
+
 The generated badge data can be used with services like shields.io:
+
 ```
 https://img.shields.io/endpoint?url=<path-to-coverage-badge.json>
 ```

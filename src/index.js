@@ -60,8 +60,12 @@ const g_defaultBundle = {};
 
 let g_logList = [];
 
-function _errorLog(...args) {
+let g_errorLog = function (...args) {
   console.error('Data Cortex Error:', ...args);
+};
+
+function _errorLog(...args) {
+  g_errorLog(...args);
 }
 
 function init(opts) {
@@ -72,6 +76,11 @@ function init(opts) {
   g_orgName = opts.org_name;
   g_appVer = opts.app_ver || '0';
   g_userTag = _getStoredItem('dc.user_tag', false);
+
+  // Set custom error logging function if provided
+  if (opts.errorLog && typeof opts.errorLog === 'function') {
+    g_errorLog = opts.errorLog;
+  }
 
   g_eventList = _getStoredItem('dc.event_list', []);
   g_nextIndex = _getStoredItem('dc.next_index', 0);
@@ -727,6 +736,33 @@ function _sendLogs() {
   }
 }
 
+function flush() {
+  if (!g_isReady) {
+    _errorLog('DataCortex not ready. Call init() first.');
+    return;
+  }
+
+  // Clear any existing timeouts to prevent duplicate sends
+  if (g_timeout) {
+    window.clearTimeout(g_timeout);
+    g_timeout = false;
+  }
+  if (g_logTimeout) {
+    window.clearTimeout(g_logTimeout);
+    g_logTimeout = false;
+  }
+
+  // Send events immediately
+  if (g_eventList.length > 0 && !g_isSending) {
+    _sendEvents();
+  }
+
+  // Send logs immediately
+  if (g_logList.length > 0 && !g_isLogSending) {
+    _sendLogs();
+  }
+}
+
 function _objectEach(object, callback) {
   Object.keys(object).forEach((key) => {
     const value = object[key];
@@ -765,6 +801,7 @@ const DataCortex = {
   messageSendEvent,
   log,
   logEvent,
+  flush,
 };
 
 // Only set window.DataCortex if window is available (browser environment)

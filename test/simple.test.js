@@ -11,13 +11,13 @@ describe('DataCortex Library Tests', () => {
   beforeEach(() => {
     // Clear localStorage
     global.localStorage.clear();
-    
+
     // Mock setTimeout to prevent infinite loops
     global.window.setTimeout = mock.fn((fn, delay) => {
       // Don't actually execute the timeout to avoid loops
       return 1;
     });
-    
+
     global.window.setInterval = mock.fn((fn, delay) => {
       // Don't actually execute the interval
       return 1;
@@ -29,9 +29,9 @@ describe('DataCortex Library Tests', () => {
       const opts = {
         api_key: process.env.DC_API_KEY || 'test-key',
         org_name: 'test-org',
-        app_ver: '1.0.0'
+        app_ver: '1.0.0',
       };
-      
+
       DataCortex.init(opts);
       assert.strictEqual(DataCortex.isReady(), true);
     });
@@ -39,9 +39,9 @@ describe('DataCortex Library Tests', () => {
     test('should generate device tag', () => {
       const opts = {
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       };
-      
+
       DataCortex.init(opts);
       const deviceTag = DataCortex.getDeviceTag();
       assert.strictEqual(typeof deviceTag, 'string');
@@ -51,12 +51,15 @@ describe('DataCortex Library Tests', () => {
     test('should add and manage user tags', () => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
-      
+
       DataCortex.addUserTag('user123');
-      assert.strictEqual(global.localStorage.getItem('dc.user_tag'), '"user123"');
-      
+      assert.strictEqual(
+        global.localStorage.getItem('dc.user_tag'),
+        '"user123"'
+      );
+
       DataCortex.addUserTag(null);
       assert.strictEqual(global.localStorage.getItem('dc.user_tag'), null);
     });
@@ -66,7 +69,7 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
@@ -79,11 +82,11 @@ describe('DataCortex Library Tests', () => {
         family: 'test-family',
         genus: 'test-genus',
         species: 'test-species',
-        float1: 123.45
+        float1: 123.45,
       };
-      
+
       const result = DataCortex.event(eventData);
-      
+
       assert.strictEqual(result.type, 'event');
       assert.strictEqual(result.kingdom, 'test-kingdom');
       assert.strictEqual(result.float1, 123.45);
@@ -95,7 +98,7 @@ describe('DataCortex Library Tests', () => {
       assert.throws(() => {
         DataCortex.event(null);
       }, /props must be an object/);
-      
+
       assert.throws(() => {
         DataCortex.event('invalid');
       }, /props must be an object/);
@@ -104,9 +107,9 @@ describe('DataCortex Library Tests', () => {
     test('should truncate string properties to 32 characters', () => {
       const longString = 'a'.repeat(50);
       const result = DataCortex.event({
-        kingdom: longString
+        kingdom: longString,
       });
-      
+
       assert.strictEqual(result.kingdom.length, 32);
     });
 
@@ -114,9 +117,9 @@ describe('DataCortex Library Tests', () => {
       const result = DataCortex.event({
         float1: '123.45',
         float2: 'invalid',
-        float3: Infinity
+        float3: Infinity,
       });
-      
+
       assert.strictEqual(result.float1, 123.45);
       assert.strictEqual(result.float2, undefined);
       assert.strictEqual(result.float3, undefined);
@@ -127,7 +130,7 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
@@ -137,11 +140,11 @@ describe('DataCortex Library Tests', () => {
         spend_amount: 9.99,
         spend_type: 'purchase',
         kingdom: 'economy',
-        phylum: 'purchase'
+        phylum: 'purchase',
       };
-      
+
       const result = DataCortex.economyEvent(eventData);
-      
+
       assert.strictEqual(result.type, 'economy');
       assert.strictEqual(result.spend_currency, 'USD');
       assert.strictEqual(result.spend_amount, 9.99);
@@ -151,7 +154,7 @@ describe('DataCortex Library Tests', () => {
     test('should throw error for missing spend_currency', () => {
       assert.throws(() => {
         DataCortex.economyEvent({
-          spend_amount: 9.99
+          spend_amount: 9.99,
         });
       }, /spend_currency is required/);
     });
@@ -159,7 +162,7 @@ describe('DataCortex Library Tests', () => {
     test('should throw error for missing spend_amount', () => {
       assert.throws(() => {
         DataCortex.economyEvent({
-          spend_currency: 'USD'
+          spend_currency: 'USD',
         });
       }, /spend_amount is required/);
     });
@@ -168,7 +171,7 @@ describe('DataCortex Library Tests', () => {
       assert.throws(() => {
         DataCortex.economyEvent({
           spend_currency: 'USD',
-          spend_amount: 'invalid'
+          spend_amount: 'invalid',
         });
       }, /spend_amount is required/);
     });
@@ -178,7 +181,7 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
@@ -186,11 +189,11 @@ describe('DataCortex Library Tests', () => {
       const eventData = {
         from_tag: 'user1',
         to_tag: 'user2',
-        kingdom: 'message'
+        kingdom: 'message',
       };
-      
+
       const result = DataCortex.messageSendEvent(eventData);
-      
+
       assert.strictEqual(result.type, 'message_send');
       assert.strictEqual(result.from_tag, 'user1');
       assert.deepStrictEqual(result.to_list, ['user2']);
@@ -200,11 +203,11 @@ describe('DataCortex Library Tests', () => {
       const eventData = {
         from_tag: 'user1',
         to_list: ['user2', 'user3'],
-        kingdom: 'message'
+        kingdom: 'message',
       };
-      
+
       const result = DataCortex.messageSendEvent(eventData);
-      
+
       assert.strictEqual(result.type, 'message_send');
       assert.deepStrictEqual(result.to_list, ['user2', 'user3']);
     });
@@ -212,7 +215,7 @@ describe('DataCortex Library Tests', () => {
     test('should throw error for missing from_tag', () => {
       assert.throws(() => {
         DataCortex.messageSendEvent({
-          to_tag: 'user2'
+          to_tag: 'user2',
         });
       }, /from_tag is required/);
     });
@@ -220,7 +223,7 @@ describe('DataCortex Library Tests', () => {
     test('should throw error for missing to_tag and to_list', () => {
       assert.throws(() => {
         DataCortex.messageSendEvent({
-          from_tag: 'user1'
+          from_tag: 'user1',
         });
       }, /to_tag or to_list is required/);
     });
@@ -230,23 +233,27 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
     test('should log simple message', () => {
       DataCortex.log('test message');
-      
+
       // Check that log was stored
-      const logList = JSON.parse(global.localStorage.getItem('dc.log_list') || '[]');
+      const logList = JSON.parse(
+        global.localStorage.getItem('dc.log_list') || '[]'
+      );
       assert.strictEqual(logList.length, 1);
       assert.strictEqual(logList[0].log_line, 'test message');
     });
 
     test('should log multiple arguments', () => {
       DataCortex.log('message', 123, { key: 'value' });
-      
-      const logList = JSON.parse(global.localStorage.getItem('dc.log_list') || '[]');
+
+      const logList = JSON.parse(
+        global.localStorage.getItem('dc.log_list') || '[]'
+      );
       assert.strictEqual(logList[0].log_line, 'message 123 {"key":"value"}');
     });
 
@@ -261,7 +268,7 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
@@ -269,11 +276,11 @@ describe('DataCortex Library Tests', () => {
       const logData = {
         log_line: 'test log message',
         log_level: 'info',
-        hostname: 'example.com'
+        hostname: 'example.com',
       };
-      
+
       const result = DataCortex.logEvent(logData);
-      
+
       assert.strictEqual(result.log_line, 'test log message');
       assert.strictEqual(result.log_level, 'info');
       assert.strictEqual(result.hostname, 'example.com');
@@ -290,9 +297,9 @@ describe('DataCortex Library Tests', () => {
       const longString = 'a'.repeat(1000);
       const result = DataCortex.logEvent({
         hostname: longString,
-        log_line: longString
+        log_line: longString,
       });
-      
+
       assert.strictEqual(result.hostname.length, 64);
       assert.strictEqual(result.log_line.length, 1000); // log_line has higher limit
     });
@@ -302,12 +309,14 @@ describe('DataCortex Library Tests', () => {
     test('should persist events in localStorage', () => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
-      
+
       DataCortex.event({ kingdom: 'test' });
-      
-      const eventList = JSON.parse(global.localStorage.getItem('dc.event_list') || '[]');
+
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
       assert.strictEqual(eventList.length, 1);
       assert.strictEqual(eventList[0].kingdom, 'test');
     });
@@ -315,11 +324,11 @@ describe('DataCortex Library Tests', () => {
     test('should persist user tag in localStorage', () => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
-      
+
       DataCortex.addUserTag('user123');
-      
+
       const userTag = JSON.parse(global.localStorage.getItem('dc.user_tag'));
       assert.strictEqual(userTag, 'user123');
     });
@@ -327,14 +336,17 @@ describe('DataCortex Library Tests', () => {
     test('should restore state from localStorage on init', () => {
       // Pre-populate localStorage
       global.localStorage.setItem('dc.user_tag', '"restored-user"');
-      global.localStorage.setItem('dc.event_list', '[{"kingdom":"restored","event_index":5}]');
+      global.localStorage.setItem(
+        'dc.event_list',
+        '[{"kingdom":"restored","event_index":5}]'
+      );
       global.localStorage.setItem('dc.next_index', '6');
-      
+
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
-      
+
       // Add new event to test index continuation
       const result = DataCortex.event({ kingdom: 'new' });
       assert.strictEqual(result.event_index, 6);
@@ -345,7 +357,7 @@ describe('DataCortex Library Tests', () => {
     beforeEach(() => {
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
     });
 
@@ -354,9 +366,9 @@ describe('DataCortex Library Tests', () => {
         kingdom: '',
         phylum: null,
         class: undefined,
-        float1: 0
+        float1: 0,
       });
-      
+
       assert.strictEqual(result.kingdom, undefined);
       assert.strictEqual(result.phylum, undefined);
       assert.strictEqual(result.class, undefined);
@@ -367,16 +379,16 @@ describe('DataCortex Library Tests', () => {
       const originalCrypto = global.crypto;
       delete global.crypto;
       delete global.window.crypto;
-      
+
       DataCortex.init({
         api_key: 'test-key',
-        org_name: 'test-org'
+        org_name: 'test-org',
       });
-      
+
       const deviceTag = DataCortex.getDeviceTag();
       assert.strictEqual(typeof deviceTag, 'string');
       assert.strictEqual(deviceTag.length, 32);
-      
+
       global.crypto = originalCrypto;
       global.window.crypto = originalCrypto;
     });

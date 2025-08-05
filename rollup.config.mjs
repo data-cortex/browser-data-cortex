@@ -1,4 +1,3 @@
-
 import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
@@ -17,13 +16,13 @@ export default [
       sourceMap: true,
     },
     plugins: [
-      babel({ exclude: 'node_modules/**', }),
+      babel({ exclude: 'node_modules/**' }),
       replace({
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
-      resolve({ browser: true, }),
+      resolve({ browser: true }),
       commonjs(),
       uglify(),
     ],
   },
-]
+];

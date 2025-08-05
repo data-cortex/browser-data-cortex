@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   url: 'https://example.com',
   pretendToBeVisual: true,
-  resources: 'usable'
+  resources: 'usable',
 });
 
 // Set up all the globals that the DataCortex library expects
@@ -29,10 +29,10 @@ if (!global.navigator) {
 const mockCrypto = {
   getRandomValues: (array) => {
     for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 0xFFFFFFFF);
+      array[i] = Math.floor(Math.random() * 0xffffffff);
     }
     return array;
-  }
+  },
 };
 
 // Try to set global.crypto, if it fails, define it as a property
@@ -42,7 +42,7 @@ try {
   Object.defineProperty(global, 'crypto', {
     value: mockCrypto,
     writable: true,
-    configurable: true
+    configurable: true,
   });
 }
 
@@ -53,13 +53,14 @@ try {
   Object.defineProperty(global.window, 'crypto', {
     value: mockCrypto,
     writable: true,
-    configurable: true
+    configurable: true,
   });
 }
 
 // Mock user agent for device detection
 Object.defineProperty(global.navigator, 'userAgent', {
-  value: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  value:
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   writable: true,
-  configurable: true
+  configurable: true,
 });
