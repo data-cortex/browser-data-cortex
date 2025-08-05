@@ -16,6 +16,42 @@ OR you can use an NPM CDN:
 <script src="https://cdn.jsdelivr.net/npm/browser-data-cortex@0.0.16/dist/browser-data-cortex.min.js"></script>
 ```
 
+### Modern Build System
+
+The library provides an optimized UMD build that works universally:
+
+- **UMD Build** (`dist/browser-data-cortex.min.js`): Universal module for browsers, works with script tags, ES modules, and CommonJS
+
+#### Using with Modern Bundlers
+
+```javascript
+// ES Module import (recommended for bundlers like Webpack, Vite, etc.)
+import DataCortex from 'browser-data-cortex';
+
+// CommonJS require (Node.js style)
+const DataCortex = require('browser-data-cortex');
+```
+
+#### Using with Script Tags
+
+```html
+<!-- UMD build for global usage -->
+<script src="path/to/browser-data-cortex.min.js"></script>
+<script>
+  window.DataCortex.init({
+    /* options */
+  });
+</script>
+
+<!-- ES Module import -->
+<script type="module">
+  import DataCortex from 'path/to/browser-data-cortex.min.js';
+  DataCortex.init({
+    /* options */
+  });
+</script>
+```
+
 ## Usage
 
 This module provides a global object once loaded at: `window.DataCortex`.
@@ -137,3 +173,60 @@ If you need to send them immediately (for example, before a page unload), you ca
 ```javascript
 window.DataCortex.flush();
 ```
+
+## Development
+
+### Building the Library
+
+The library uses Rollup with modern plugins for building:
+
+```bash
+# Build both UMD and ES module versions
+npm run build
+
+# Build and watch for changes
+npm run build:watch
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Code Quality
+
+```bash
+# Lint the code
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+
+# Format code with Prettier
+npm run pretty
+```
+
+The project uses:
+
+- **ESLint 9.x** with modern flat configuration
+- **Prettier** for code formatting
+- **Security plugins** for vulnerability detection
+- **Import validation** for module consistency
+
+See [LINTING.md](./LINTING.md) for detailed ESLint configuration information.
+
+The build system uses:
+
+- **Rollup 4.x** for bundling
+- **Babel** with `@babel/preset-env` for transpilation
+- **Terser** for minification
+- **Modern browser targets** (> 1%, last 2 versions, not dead)
+- **UMD format** for universal compatibility

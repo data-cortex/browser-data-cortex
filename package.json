@@ -11,33 +11,65 @@
   },
   "license": "MIT",
   "type": "module",
+  "main": "dist/browser-data-cortex.min.js",
+  "module": "dist/browser-data-cortex.min.js",
+  "browser": "dist/browser-data-cortex.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/browser-data-cortex.min.js",
+      "require": "./dist/browser-data-cortex.min.js",
+      "browser": "./dist/browser-data-cortex.min.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "build": "rollup -c",
-    "lint": "eslint src",
+    "build": "rm -rf dist && rollup -c",
+    "build:watch": "rollup -c --watch",
+    "lint": "eslint src --fix",
     "pretty": "prettier -u --write \"**/*\" --log-level warn",
     "test": "node test/unit.test.js",
     "test:coverage": "node --experimental-test-coverage test/coverage.test.js",
     "test:coverage-report": "node scripts/coverage-report.js",
-    "test:watch": "node --watch test/unit.test.js"
+    "test:watch": "node --watch test/unit.test.js",
+    "prepublishOnly": "npm run build"
   },
-  "main": "dist/browser-data-cortex.min.js",
-  "module": "dist/browser-data-cortex.min.js",
-  "browser": "dist/browser-data-cortex.min.js",
-  "files": [
-    "dist"
+  "keywords": [
+    "analytics",
+    "tracking",
+    "browser",
+    "data-cortex",
+    "events",
+    "logging"
   ],
   "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.23.7",
     "@babel/preset-env": "^7.23.8",
+    "@eslint/js": "^9.8.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^8.56.0",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^48.10.2",
+    "eslint-plugin-security": "^3.0.1",
+    "globals": "^15.9.0",
     "jsdom": "^23.2.0",
     "prettier": "^3.2.4",
     "rollup": "^4.9.6"
-  }
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }

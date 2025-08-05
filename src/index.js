@@ -356,7 +356,7 @@ function _sendEvents() {
     const current_time = encodeURIComponent(new Date().toISOString());
     const url = `${g_apiBaseUrl}/${g_orgName}/1/track?current_time=${current_time}`;
     const opts = {
-      url: url,
+      url,
       method: 'POST',
       body: bundle,
     };
@@ -423,7 +423,6 @@ function _request(args, done) {
   }
 
   xhr.onload = () => {
-    // eslint-disable-next-line eqeqeq
     const status = xhr.status == 1223 ? 204 : xhr.status;
     let body = false;
     let err = null;
@@ -697,10 +696,10 @@ function _sendLogs() {
     }
     bundle.events = g_logList.slice(0, LOG_SEND_COUNT);
 
-    const url = g_apiBaseUrl + '/' + g_orgName + '/1/app_log';
+    const url = `${g_apiBaseUrl}/${g_orgName}/1/app_log`;
 
     const opts = {
-      url: url,
+      url,
       method: 'POST',
       body: bundle,
     };
