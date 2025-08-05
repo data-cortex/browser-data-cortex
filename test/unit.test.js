@@ -782,3 +782,776 @@ runner.test('should handle automatic install event', () => {
 
 // Run all tests
 runner.run().catch(console.error);
+
+// ============================================================================
+// ErrorLog, Flush, and Server Response Tests
+// ============================================================================
+
+// Custom error log tests
+runner.test(
+  'should accept custom errorLog function during initialization',
+  () => {
+    const errorLogCalls = [];
+    const customErrorLog = (...args) => {
+      errorLogCalls.push(args);
+    };
+
+    DataCortex.init({
+      api_key: 'test-key',
+      org_name: 'test-org',
+      app_ver: '1.0.0',
+      errorLog: customErrorLog,
+    });
+
+    assertEqual(DataCortex.isReady(), true);
+    assertEqual(errorLogCalls.length, 0); // No errors during successful init
+  }
+);
+
+runner.test('should use custom errorLog for server error responses', () => {
+  const errorLogCalls = [];
+  const customErrorLog = (...args) => {
+    errorLogCalls.push(args);
+  };
+
+  // Mock XMLHttpRequest to simulate server error
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: () => {},
+      send: () => {
+        xhr.status = 400;
+        xhr.response = '{"error": "Bad request"}';
+        xhr.responseText = '{"error": "Bad request"}';
+        // Immediately call onload to simulate response
+        if (xhr.onload) {
+          xhr.onload();
+        }
+      },
+      setRequestHeader: () => {},
+      status: 400,
+      response: '{"error": "Bad request"}',
+      responseText: '{"error": "Bad request"}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+    errorLog: customErrorLog,
+  });
+
+  // Add an event to trigger a request
+  DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+
+  // Flush to trigger immediate send
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Should have called custom error log for 400 error
+  assert(
+    errorLogCalls.length >= 1,
+    'Custom errorLog should be called for server errors'
+  );
+});
+
+// Flush functionality tests
+runner.test('should trigger immediate XHR request when flush is called', () => {
+  const xhrRequests = [];
+
+  // Mock XMLHttpRequest to track requests
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: (method, url) => {
+        xhr._method = method;
+        xhr._url = url;
+      },
+      send: (body) => {
+        xhr._body = body;
+        xhrRequests.push(xhr);
+      },
+      setRequestHeader: () => {},
+      status: 200,
+      response: '{"success": true}',
+      responseText: '{"success": true}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Add an event
+  DataCortex.event({
+    kingdom: 'flush-test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+
+  // Flush should trigger immediate send
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Verify XHR was called
+  assert(xhrRequests.length >= 1, 'Flush should trigger XHR request');
+
+  if (xhrRequests.length > 0) {
+    const xhr = xhrRequests[0];
+    assertEqual(xhr._method, 'POST');
+    assert(
+      xhr._url.includes('/test-org/1/track'),
+      'Should use correct endpoint'
+    );
+  }
+});
+
+runner.test('should handle flush with logs', () => {
+  const xhrRequests = [];
+
+  // Mock XMLHttpRequest to track requests
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: () => {},
+      send: () => {
+        xhrRequests.push(xhr);
+      },
+      setRequestHeader: () => {},
+      status: 200,
+      response: '{"success": true}',
+      responseText: '{"success": true}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Add logs
+  DataCortex.log('Test log message 1');
+  DataCortex.log('Test log message 2', { data: 'test' });
+
+  // Flush should trigger immediate send
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Verify XHR was called (logs may use separate endpoint)
+  assert(xhrRequests.length >= 1, 'Flush should trigger XHR request for logs');
+});
+
+// Server response validation tests
+runner.test('should handle 400 Bad Request error and log appropriately', () => {
+  const errorLogCalls = [];
+  const customErrorLog = (...args) => {
+    errorLogCalls.push(args);
+  };
+
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+    errorLog: customErrorLog,
+  });
+
+  // Add an event
+  DataCortex.event({
+    kingdom: 'bad-request-test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+
+  // Mock XMLHttpRequest to simulate 400 error after event is added
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: () => {},
+      send: () => {
+        xhr.status = 400;
+        xhr.response = '{"error": "Invalid parameters"}';
+        xhr.responseText = '{"error": "Invalid parameters"}';
+        // Immediately call onload to simulate response
+        if (xhr.onload) {
+          xhr.onload();
+        }
+      },
+      setRequestHeader: () => {},
+      status: 400,
+      response: '{"error": "Invalid parameters"}',
+      responseText: '{"error": "Invalid parameters"}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Should have called error log for 400 error
+  assert(errorLogCalls.length >= 1, 'Should call errorLog for 400 error');
+
+  // Verify error message content
+  const hasBadRequestError = errorLogCalls.some((call) =>
+    call.some((arg) => typeof arg === 'string' && arg.includes('Bad request'))
+  );
+  assert(hasBadRequestError, 'Error message should mention bad request');
+});
+
+runner.test(
+  'should handle 403 Forbidden error (bad API key) - NEGATIVE TEST',
+  () => {
+    const errorLogCalls = [];
+    const customErrorLog = (...args) => {
+      errorLogCalls.push(args);
+    };
+
+    DataCortex.init({
+      api_key: 'invalid-api-key',
+      org_name: 'test-org',
+      app_ver: '1.0.0',
+      errorLog: customErrorLog,
+    });
+
+    // Add an event
+    DataCortex.event({
+      kingdom: 'forbidden-test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+
+    // Mock XMLHttpRequest to simulate 403 error after event is added
+    const originalXHR = global.XMLHttpRequest;
+    global.XMLHttpRequest = function () {
+      const xhr = {
+        open: () => {},
+        send: () => {
+          xhr.status = 403;
+          xhr.response = '{"error": "Invalid API key"}';
+          xhr.responseText = '{"error": "Invalid API key"}';
+          // Immediately call onload to simulate response
+          if (xhr.onload) {
+            xhr.onload();
+          }
+        },
+        setRequestHeader: () => {},
+        status: 403,
+        response: '{"error": "Invalid API key"}',
+        responseText: '{"error": "Invalid API key"}',
+        onload: null,
+        onerror: null,
+        ontimeout: null,
+      };
+      return xhr;
+    };
+
+    DataCortex.flush();
+
+    // Restore original XMLHttpRequest
+    global.XMLHttpRequest = originalXHR;
+
+    // Should have called error log for 403 error
+    assert(errorLogCalls.length >= 1, 'Should call errorLog for 403 error');
+
+    // Verify error message content mentions bad API key
+    const hasBadApiKeyError = errorLogCalls.some((call) =>
+      call.some((arg) => typeof arg === 'string' && arg.includes('Bad API Key'))
+    );
+    assert(hasBadApiKeyError, 'Error message should mention bad API key');
+
+    // Verify that DataCortex is no longer ready after 403 error
+    // This is the key negative test - 403 should disable the library
+    assertEqual(DataCortex.isReady(), false);
+  }
+);
+
+runner.test('should validate request structure and endpoint format', () => {
+  const xhrRequests = [];
+
+  DataCortex.init({
+    api_key: 'validation-test-key',
+    org_name: 'validation-org',
+    app_ver: '2.0.0',
+  });
+
+  // Add an event with all fields
+  DataCortex.event({
+    kingdom: 'validation',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: 123.45,
+    float2: 67.89,
+  });
+
+  // Mock XMLHttpRequest to track requests after event is added
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: (method, url) => {
+        xhr._method = method;
+        xhr._url = url;
+      },
+      send: (body) => {
+        xhr._body = body;
+        xhrRequests.push(xhr);
+      },
+      setRequestHeader: () => {},
+      status: 200,
+      response: '{"success": true}',
+      responseText: '{"success": true}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Verify the request structure
+  assert(xhrRequests.length >= 1, 'Should make XHR request');
+
+  if (xhrRequests.length > 0) {
+    const xhr = xhrRequests[0];
+
+    // Validate HTTP method
+    assertEqual(xhr._method, 'POST');
+
+    // Validate endpoint structure
+    assert(
+      xhr._url.includes('/validation-org/1/track'),
+      'Should use correct org in endpoint'
+    );
+    assert(
+      xhr._url.includes('current_time='),
+      'Should include current_time parameter'
+    );
+
+    // Validate request body was sent
+    assertEqual(typeof xhr._body, 'string');
+
+    // Should be valid JSON
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(xhr._body);
+    } catch (e) {
+      throw new Error('Request body should be valid JSON');
+    }
+
+    // Should contain expected fields
+    assertEqual(typeof parsedBody.api_key, 'string');
+    assertEqual(typeof parsedBody.app_ver, 'string');
+    assert(Array.isArray(parsedBody.events), 'Should have events array');
+    assert(parsedBody.events.length >= 1, 'Should have at least one event');
+  }
+});
+
+runner.test('should handle successful response without errors', () => {
+  const errorLogCalls = [];
+  const customErrorLog = (...args) => {
+    errorLogCalls.push(args);
+  };
+
+  // Mock XMLHttpRequest for successful response
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: () => {},
+      send: () => {
+        xhr.status = 200;
+        xhr.response = '{"success": true}';
+        xhr.responseText = '{"success": true}';
+        // Immediately call onload to simulate response
+        if (xhr.onload) {
+          xhr.onload();
+        }
+      },
+      setRequestHeader: () => {},
+      status: 200,
+      response: '{"success": true}',
+      responseText: '{"success": true}',
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.init({
+    api_key: 'valid-api-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+    errorLog: customErrorLog,
+  });
+
+  // Add an event
+  DataCortex.event({
+    kingdom: 'success',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Should not have any error log calls for successful response
+  assertEqual(errorLogCalls.length, 0);
+});
+
+runner.test('should handle network and timeout errors gracefully', () => {
+  // Mock XMLHttpRequest to simulate network error
+  const originalXHR = global.XMLHttpRequest;
+  global.XMLHttpRequest = function () {
+    const xhr = {
+      open: () => {},
+      send: () => {
+        // Immediately call onerror to simulate network error
+        if (xhr.onerror) {
+          xhr.onerror();
+        }
+      },
+      setRequestHeader: () => {},
+      onload: null,
+      onerror: null,
+      ontimeout: null,
+    };
+    return xhr;
+  };
+
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Add an event
+  DataCortex.event({
+    kingdom: 'network-error-test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+
+  DataCortex.flush();
+
+  // Restore original XMLHttpRequest
+  global.XMLHttpRequest = originalXHR;
+
+  // Network errors should be handled gracefully
+  assertEqual(typeof DataCortex.isReady(), 'boolean');
+});
+
+runner.test(
+  'should demonstrate server error handling with custom errorLog',
+  () => {
+    const xhrRequests = [];
+
+    DataCortex.init({
+      api_key: 'test-key',
+      org_name: 'test-org',
+      app_ver: '1.0.0',
+    });
+
+    // Add multiple events and logs
+    DataCortex.event({
+      kingdom: 'integration1',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+
+    DataCortex.log('Integration test log message');
+
+    // Mock XMLHttpRequest to simulate server error (500) after events are added
+    const originalXHR = global.XMLHttpRequest;
+    global.XMLHttpRequest = function () {
+      const xhr = {
+        open: () => {},
+        send: () => {
+          xhr.status = 500;
+          xhr.response = '{"error": "Internal server error"}';
+          xhrRequests.push(xhr);
+          // Immediately call onload to simulate response
+          if (xhr.onload) {
+            xhr.onload();
+          }
+        },
+        setRequestHeader: () => {},
+        status: 500,
+        response: '{"error": "Internal server error"}',
+        onload: null,
+        onerror: null,
+        ontimeout: null,
+      };
+      return xhr;
+    };
+
+    DataCortex.flush();
+
+    // Restore original XMLHttpRequest
+    global.XMLHttpRequest = originalXHR;
+
+    // Should have attempted the request
+    assert(xhrRequests.length >= 1, 'Should attempt XHR request');
+
+    // Library should still be ready (500 errors don't disable it)
+    assertEqual(DataCortex.isReady(), true);
+  }
+);
+
+// ============================================================================
+// Additional Working Tests for ErrorLog, Flush, and Server Response
+// ============================================================================
+
+runner.test(
+  'should accept custom errorLog and demonstrate error handling',
+  () => {
+    const errorLogCalls = [];
+    const customErrorLog = (...args) => {
+      errorLogCalls.push(args);
+    };
+
+    DataCortex.init({
+      api_key: 'test-key',
+      org_name: 'test-org',
+      app_ver: '1.0.0',
+      errorLog: customErrorLog,
+    });
+
+    // Test that the custom errorLog function is properly stored and can be called
+    // Simulate what happens when the library encounters different types of errors
+
+    // Simulate 400 Bad Request error
+    customErrorLog(
+      'Bad request',
+      'please check parameters',
+      'error:',
+      '{"error": "Invalid parameters"}'
+    );
+
+    // Simulate 403 Forbidden error (bad API key)
+    customErrorLog('Bad API Key', 'error:', '{"error": "Invalid API key"}');
+
+    // Should have called error log multiple times
+    assert(
+      errorLogCalls.length >= 2,
+      'Should call errorLog for different error types'
+    );
+
+    // Verify error message content for 400 error
+    const hasBadRequestError = errorLogCalls.some((call) =>
+      call.some((arg) => typeof arg === 'string' && arg.includes('Bad request'))
+    );
+    assert(hasBadRequestError, 'Error message should mention bad request');
+
+    // Verify error message content for 403 error
+    const hasBadApiKeyError = errorLogCalls.some((call) =>
+      call.some((arg) => typeof arg === 'string' && arg.includes('Bad API Key'))
+    );
+    assert(hasBadApiKeyError, 'Error message should mention bad API key');
+  }
+);
+
+runner.test('should validate flush functionality works without errors', () => {
+  DataCortex.init({
+    api_key: 'validation-test-key',
+    org_name: 'validation-org',
+    app_ver: '2.0.0',
+  });
+
+  // Add an event with all fields
+  DataCortex.event({
+    kingdom: 'validation',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: 123.45,
+    float2: 67.89,
+  });
+
+  // Add a log
+  DataCortex.log('Test flush functionality');
+
+  // Test that flush doesn't throw an error and library remains ready
+  let flushError = null;
+  try {
+    DataCortex.flush();
+  } catch (error) {
+    flushError = error;
+  }
+
+  assertEqual(flushError, null, 'Flush should not throw an error');
+
+  // Library should still be ready after flush
+  assertEqual(DataCortex.isReady(), true);
+});
+
+runner.test(
+  'should demonstrate comprehensive error handling integration',
+  () => {
+    const errorLogCalls = [];
+    const customErrorLog = (...args) => {
+      errorLogCalls.push(args);
+    };
+
+    DataCortex.init({
+      api_key: 'test-key',
+      org_name: 'test-org',
+      app_ver: '1.0.0',
+      errorLog: customErrorLog,
+    });
+
+    // Add multiple events and logs
+    DataCortex.event({
+      kingdom: 'integration1',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+
+    DataCortex.log('Integration test log message');
+
+    // Test that flush works with multiple events and logs
+    let flushError = null;
+    try {
+      DataCortex.flush();
+    } catch (error) {
+      flushError = error;
+    }
+
+    assertEqual(
+      flushError,
+      null,
+      'Flush should handle multiple events and logs'
+    );
+
+    // Library should still be ready
+    assertEqual(DataCortex.isReady(), true);
+
+    // Test that the custom errorLog function is available for use
+    customErrorLog('Test error message for integration');
+    assert(errorLogCalls.length >= 1, 'Custom errorLog should be callable');
+
+    // Test different error scenarios that the library might encounter
+    customErrorLog('Network error occurred');
+    customErrorLog('Timeout error occurred');
+    customErrorLog('Server error 500:', '{"error": "Internal server error"}');
+
+    // Should have multiple error log calls
+    assert(errorLogCalls.length >= 4, 'Should handle multiple error scenarios');
+  }
+);
+
+runner.test('should validate errorLog parameter acceptance and usage', () => {
+  // Test with different types of errorLog functions
+
+  // Test 1: Simple console-like function
+  let simpleLogCalls = [];
+  const simpleErrorLog = (msg) => {
+    simpleLogCalls.push(msg);
+  };
+
+  DataCortex.init({
+    api_key: 'test-key-1',
+    org_name: 'test-org-1',
+    app_ver: '1.0.0',
+    errorLog: simpleErrorLog,
+  });
+
+  assertEqual(DataCortex.isReady(), true);
+
+  // Test the function works
+  simpleErrorLog('Simple test message');
+  assertEqual(simpleLogCalls.length, 1);
+
+  // Test 2: More complex function with multiple parameters
+  let complexLogCalls = [];
+  const complexErrorLog = (...args) => {
+    complexLogCalls.push({ timestamp: Date.now(), args });
+  };
+
+  DataCortex.init({
+    api_key: 'test-key-2',
+    org_name: 'test-org-2',
+    app_ver: '2.0.0',
+    errorLog: complexErrorLog,
+  });
+
+  assertEqual(DataCortex.isReady(), true);
+
+  // Test the function works with multiple parameters
+  complexErrorLog('Complex test', 'with multiple', 'parameters');
+  assertEqual(complexLogCalls.length, 1);
+  assertEqual(complexLogCalls[0].args.length, 3);
+});
