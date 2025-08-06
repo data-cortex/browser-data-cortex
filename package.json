@@ -34,7 +34,7 @@
     "ts-check": "tsc --noEmit",
     "lint": "eslint src --fix",
     "pretty": "prettier -u --write \"**/*\" --log-level warn",
-    "test": "node test/unit.test.js && node test/boundary-parameter-test.js",
+    "test": "node test/all-tests.js",
     "test:unit": "node test/unit.test.js",
     "test:server": "node test/real-server-test.js",
     "test:comprehensive": "node test/comprehensive-real-server-test.js",
