@@ -224,10 +224,9 @@ function _loadDeviceTag(): string {
 
 function _generateRandomString(): string {
   let text = '';
-  const crypto = window.crypto ?? (window as unknown as Record<string, unknown>).msCrypto;
-  if (crypto?.getRandomValues) {
+  if (window.crypto?.getRandomValues) {
     const array = new Uint32Array(8);
-    crypto.getRandomValues(array);
+    window.crypto.getRandomValues(array);
     for (let i = 0; i < array.length; i++) {
       text += array[i].toString(36);
     }
@@ -279,7 +278,7 @@ export function init(opts: InitOptions): void {
 
   _maybeSendInstall();
   _maybeAddDau();
-  window.setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
+  setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
 
   _setupDefaultBundle();
   g_isReady = true;
@@ -435,10 +434,10 @@ function _internalEventAdd(props: InternalEvent): void {
 }
 function _sendEventsLater(delay?: number): void {
   if (!g_timeout && g_isReady && !g_isSending) {
-    g_timeout = window.setTimeout(() => {
+    g_timeout = setTimeout(() => {
       g_timeout = null;
       _sendEvents();
-    }, delay ?? 0) as unknown as ReturnType<typeof setTimeout>;
+    }, delay ?? 0);
   }
 }
 function _sendEvents(): void {
@@ -789,10 +788,10 @@ let g_logDelayCount: number = 0;
 
 function _sendLogsLater(delay: number = 0): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
-    g_logTimeout = window.setTimeout(() => {
+    g_logTimeout = setTimeout(() => {
       g_logTimeout = null;
       _sendLogs();
-    }, delay) as unknown as ReturnType<typeof setTimeout>;
+    }, delay);
   }
 }
 interface LogBundle extends Omit<DefaultBundle, 'events'> {
@@ -857,11 +856,11 @@ export function flush(): void {
     return;
   }
   if (g_timeout) {
-    window.clearTimeout(g_timeout);
+    clearTimeout(g_timeout);
     g_timeout = null;
   }
   if (g_logTimeout) {
-    window.clearTimeout(g_logTimeout);
+    clearTimeout(g_logTimeout);
     g_logTimeout = null;
   }
   if (g_eventList.length > 0 && !g_isSending) {
@@ -885,5 +884,5 @@ const DataCortex = {
 };
 export default DataCortex;
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>).DataCortex = DataCortex;
+  (window as typeof window & { DataCortex: typeof DataCortex }).DataCortex = DataCortex;
 }
