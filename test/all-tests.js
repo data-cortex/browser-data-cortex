@@ -2,14 +2,14 @@
 
 /**
  * Comprehensive test runner for browser-data-cortex
- * 
+ *
  * This script runs all tests in sequence and provides coverage analysis:
  * 1. Unit tests (37 tests) - Core functionality testing
  * 2. Boundary parameter tests - Min/max parameter validation
  * 3. Real server tests - API key validation against live server
  * 4. Comprehensive server tests - All API endpoints validation
  * 5. Coverage analysis - Code coverage report
- * 
+ *
  * Usage: yarn test
  */
 
@@ -27,7 +27,7 @@ function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      ...options
+      ...options,
     });
 
     child.on('close', (code) => {
@@ -49,7 +49,7 @@ function runCommandWithOutput(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: ['inherit', 'pipe', 'pipe'],
-      ...options
+      ...options,
     });
 
     let stdout = '';
@@ -92,27 +92,34 @@ async function runAllTests() {
 
     // 4. Run comprehensive real server tests
     console.log('🎯 Running comprehensive real server tests...');
-    await runCommand('node', [join(__dirname, 'comprehensive-real-server-test.js')]);
+    await runCommand('node', [
+      join(__dirname, 'comprehensive-real-server-test.js'),
+    ]);
     console.log('✅ Comprehensive real server tests completed\n');
 
     // 5. Generate coverage report
     console.log('📊 Generating coverage report...');
     const coverageResult = await runCommandWithOutput('node', [
       '--experimental-test-coverage',
-      join(__dirname, 'coverage.test.js')
+      join(__dirname, 'coverage.test.js'),
     ]);
 
     // Extract and display coverage information
     const output = coverageResult.stdout + coverageResult.stderr;
     const coverageStart = output.indexOf('start of coverage report');
     const coverageEnd = output.indexOf('end of coverage report');
-    
+
     if (coverageStart !== -1 && coverageEnd !== -1) {
-      const coverageReport = output.substring(coverageStart, coverageEnd + 'end of coverage report'.length);
+      const coverageReport = output.substring(
+        coverageStart,
+        coverageEnd + 'end of coverage report'.length
+      );
       console.log('\n' + coverageReport);
     } else {
       // Fallback: show test summary
-      const testSummary = output.match(/# tests \d+[\s\S]*?# duration_ms [\d.]+/);
+      const testSummary = output.match(
+        /# tests \d+[\s\S]*?# duration_ms [\d.]+/
+      );
       if (testSummary) {
         console.log('\n📈 Test Summary:');
         console.log(testSummary[0]);
@@ -120,7 +127,6 @@ async function runAllTests() {
     }
 
     console.log('\n🎉 All tests completed successfully!');
-    
   } catch (error) {
     console.error('\n❌ Test suite failed:', error.message);
     process.exit(1);

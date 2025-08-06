@@ -215,7 +215,7 @@ function _getStoredItem<T>(name: string, def: T | (() => T)): T {
       ret = def;
     }
   }
-  return ret as T;
+  return ret;
 }
 
 function _setStoredItem(name: string, value: any): void {
@@ -764,7 +764,7 @@ export function logEvent(props: LogEventProps) {
   _objectEach(LOG_STRING_PROP_MAP, (max_len, p) => {
     if (p in props) {
       const val = (props as any)[p];
-      const s = val && val.toString();
+      const s = val?.toString();
       if (s) {
         (props as any)[p] = s.slice(0, max_len);
       } else {
@@ -799,8 +799,7 @@ function _removeLogs(events: LogEventProps[]): void {
 
 function _isError(e: any): e is Error {
   return (
-    e &&
-    e.stack &&
+    e?.stack &&
     e.message &&
     typeof e.stack === 'string' &&
     typeof e.message === 'string'
