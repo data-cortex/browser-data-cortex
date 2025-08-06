@@ -126,7 +126,7 @@ let g_apiKey: string | false = false;
 let g_orgName: string | false = false;
 let g_appVer: string = '0';
 
-let g_userTag: string | false = false;
+let g_userTag: string | null = null;
 let g_eventList: InternalEvent[] = [];
 let g_hasSendInstall: boolean = false;
 let g_lastDAUTime: number = 0;
@@ -219,7 +219,7 @@ export function init(opts: InitOptions): void {
   g_apiKey = opts.api_key;
   g_orgName = opts.org_name;
   g_appVer = opts.app_ver ?? '0';
-  g_userTag = _getStoredItem<string | false>('dc.user_tag') ?? false;
+  g_userTag = _getStoredItem<string>('dc.user_tag') ?? null;
 
   // Set custom error logging function if provided
   if (opts.errorLog && typeof opts.errorLog === 'function') {
@@ -272,8 +272,8 @@ export function isReady(): boolean {
 export function getDeviceTag(): string | false {
   return g_deviceTag;
 }
-export function addUserTag(userTag: string | null | undefined): void {
-  g_userTag = userTag ? String(userTag) : false;
+export function addUserTag(userTag: string | null): void {
+  g_userTag = userTag ? String(userTag) : null;
   if (g_userTag) {
     _setStoredItem('dc.user_tag', g_userTag);
   } else {
