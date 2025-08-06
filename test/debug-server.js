@@ -68,12 +68,12 @@ originalSetTimeout(() => {
   console.log('8. After waiting for HTTP request:');
   console.log('   - Error log calls:', errorLogCalls.length);
   console.log('   - Library ready:', DataCortex.isReady());
-  
+
   if (errorLogCalls.length > 0) {
     console.log('   - Error details:', errorLogCalls);
   } else {
     console.log('   - No errors logged - this indicates the problem!');
   }
-  
+
   process.exit(0);
 }, 3000);

@@ -112,7 +112,7 @@ setTimeout(() => {
   console.log('===========');
   console.log('Error log calls:', errorLogCalls.length);
   console.log('Library ready status:', DataCortex.isReady());
-  
+
   // Determine validity based on server response
   if (errorLogCalls.length === 0) {
     // No errors = valid API key
@@ -126,35 +126,42 @@ setTimeout(() => {
     // Errors logged = invalid API key
     console.log('❌ RESULT: API key is INVALID');
     console.log('   ❌ Server error logged:', errorLogCalls[0]);
-    
+
     // Check if library was disabled (403 error)
     const libraryReady = DataCortex.isReady();
     console.log('   🔒 Library disabled after error:', !libraryReady);
-    
+
     // Verify error message content
-    const hasApiKeyError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('Bad API Key') || 
-          arg.includes('Invalid API Key') ||
-          arg.includes('403') ||
-          arg.includes('Forbidden')
-        )
+    const hasApiKeyError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad API Key') ||
+            arg.includes('Invalid API Key') ||
+            arg.includes('403') ||
+            arg.includes('Forbidden'))
       )
     );
-    
+
     if (hasApiKeyError) {
       console.log('   ✅ Error message confirms API key issue');
-      console.log('\n🎯 NEGATIVE TEST SUCCESSFUL: Invalid API key properly rejected');
+      console.log(
+        '\n🎯 NEGATIVE TEST SUCCESSFUL: Invalid API key properly rejected'
+      );
       console.log('   ✅ Real HTTP request made to server');
       console.log('   ✅ Server returned authentication error');
       console.log('   ✅ Custom errorLog captured server response');
       console.log('   ✅ Library properly disabled after 403 error');
     } else {
-      console.log('   ⚠️  Error logged but not API key related:', errorLogCalls);
+      console.log(
+        '   ⚠️  Error logged but not API key related:',
+        errorLogCalls
+      );
     }
-    
-    console.log('\n❌ FAILURE: Invalid API key test (this is expected behavior)');
+
+    console.log(
+      '\n❌ FAILURE: Invalid API key test (this is expected behavior)'
+    );
     process.exit(1); // Failure (invalid API key)
   }
 }, 5000); // Wait 5 seconds for real HTTP request

@@ -110,7 +110,7 @@ DataCortex.event({
 console.log('   💰 Adding economy event (hits /track endpoint)...');
 DataCortex.economyEvent({
   spend_currency: 'gold',
-  spend_amount: 100.50,
+  spend_amount: 100.5,
   spend_type: 'purchase',
   kingdom: 'comprehensive',
   phylum: 'economy',
@@ -165,7 +165,7 @@ setTimeout(() => {
   console.log('=========================');
   console.log('Total error log calls:', errorLogCalls.length);
   console.log('Library ready status:', DataCortex.isReady());
-  
+
   // Analyze all error logs
   if (errorLogCalls.length > 0) {
     console.log('\n🔍 ERROR ANALYSIS:');
@@ -173,7 +173,7 @@ setTimeout(() => {
       console.log(`   Error ${index + 1}: ${call.join(' ')}`);
     });
   }
-  
+
   // Determine validity based on server responses
   if (errorLogCalls.length === 0) {
     // No errors = valid API key
@@ -186,46 +186,51 @@ setTimeout(() => {
     process.exit(0); // Success
   } else {
     // Errors logged = invalid API key or endpoint issues
-    console.log('\n❌ COMPREHENSIVE RESULT: API key is INVALID or endpoint errors');
-    
+    console.log(
+      '\n❌ COMPREHENSIVE RESULT: API key is INVALID or endpoint errors'
+    );
+
     // Check if library was disabled (403 error)
     const libraryReady = DataCortex.isReady();
     console.log('   🔒 Library disabled after errors:', !libraryReady);
-    
+
     // Analyze error types
-    const hasApiKeyError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('Bad API Key') || 
-          arg.includes('Invalid API Key') ||
-          arg.includes('403') ||
-          arg.includes('Forbidden')
-        )
+    const hasApiKeyError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad API Key') ||
+            arg.includes('Invalid API Key') ||
+            arg.includes('403') ||
+            arg.includes('Forbidden'))
       )
     );
-    
-    const hasBadRequestError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('Bad request') ||
-          arg.includes('400')
-        )
+
+    const hasBadRequestError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad request') || arg.includes('400'))
       )
     );
-    
+
     if (hasApiKeyError) {
       console.log('   🎯 /track endpoint: REJECTED (invalid API key)');
       console.log('   🎯 /app_log endpoint: REJECTED (invalid API key)');
       console.log('   ✅ Both endpoints properly validate API keys');
-      console.log('\n🎯 NEGATIVE TEST SUCCESSFUL: Invalid API key rejected by all endpoints');
+      console.log(
+        '\n🎯 NEGATIVE TEST SUCCESSFUL: Invalid API key rejected by all endpoints'
+      );
     } else if (hasBadRequestError) {
       console.log('   ⚠️  Some endpoints returned 400 Bad Request');
       console.log('   This could indicate parameter validation issues');
     } else {
       console.log('   ⚠️  Unexpected error types detected');
     }
-    
-    console.log('\n❌ FAILURE: Invalid API key or endpoint errors (expected for invalid keys)');
+
+    console.log(
+      '\n❌ FAILURE: Invalid API key or endpoint errors (expected for invalid keys)'
+    );
     process.exit(1); // Failure (invalid API key or errors)
   }
 }, 6000); // Wait 6 seconds for all HTTP requests

@@ -23,6 +23,11 @@ const eventWithLongGroupTag = DataCortex.event({
   group_tag: longString,
 });
 
-console.log('Event group_tag length:', eventWithLongGroupTag.group_tag ? eventWithLongGroupTag.group_tag.length : 'undefined');
+console.log(
+  'Event group_tag length:',
+  eventWithLongGroupTag.group_tag
+    ? eventWithLongGroupTag.group_tag.length
+    : 'undefined'
+);
 console.log('Event group_tag value:', eventWithLongGroupTag.group_tag);
 console.log('Event keys:', Object.keys(eventWithLongGroupTag));

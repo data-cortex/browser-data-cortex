@@ -49,7 +49,9 @@ DataCortex.event({
 
 console.log('   ✅ Event added');
 
-console.log('\n3. Restoring real setTimeout and clearTimeout for HTTP requests...');
+console.log(
+  '\n3. Restoring real setTimeout and clearTimeout for HTTP requests...'
+);
 global.setTimeout = global.window.setTimeout = originalSetTimeout;
 global.clearTimeout = global.window.clearTimeout = originalClearTimeout;
 
@@ -64,37 +66,40 @@ originalSetTimeout(() => {
   console.log('============================');
   console.log('Error log calls:', errorLogCalls.length);
   console.log('Library ready status:', DataCortex.isReady());
-  
+
   if (errorLogCalls.length > 0) {
     console.log('\n✅ SUCCESS: Real server integration is working!');
     console.log('📝 Error details:', errorLogCalls[0]);
-    
+
     // Check if it's a 403 error that disables the library
-    const hasApiKeyError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (arg.includes('Bad API Key') || arg.includes('Invalid API Key'))
+    const hasApiKeyError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad API Key') || arg.includes('Invalid API Key'))
       )
     );
-    
+
     if (hasApiKeyError) {
       console.log('🎯 Confirmed: Bad API Key error detected');
       console.log('🔒 Library disabled status:', !DataCortex.isReady());
     }
-    
+
     console.log('\n🎉 DEMONSTRATION COMPLETE: All functionality working!');
     console.log('   ✅ Custom errorLog function works');
     console.log('   ✅ Flush triggers real HTTP requests');
     console.log('   ✅ Server errors are properly handled');
     console.log('   ✅ Invalid API keys trigger error logging');
     console.log('   ✅ 403 errors disable the library (negative test)');
-    
   } else {
-    console.log('\n❌ ISSUE: No errors logged - server integration may not be working');
+    console.log(
+      '\n❌ ISSUE: No errors logged - server integration may not be working'
+    );
     console.log('This could indicate:');
     console.log('- Network connectivity issues');
     console.log('- Server endpoint not responding');
     console.log('- HTTP request not being made');
   }
-  
+
   process.exit(0);
 }, 3000);

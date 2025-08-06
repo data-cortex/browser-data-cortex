@@ -194,7 +194,7 @@ function _getStoredItem(name, def) {
     const json = window.localStorage[name];
     try {
       ret = JSON.parse(json);
-    } catch (e) {
+    } catch {
       // _errorLog("Failed to parse:",name,"json:",json);
     }
   }
@@ -416,47 +416,63 @@ function _request(args, done) {
   const headers = Object.assign({}, default_headers, args.headers);
 
   const url = args.url;
-  const xhr = new XMLHttpRequest();
 
-  if (args.timeout) {
-    xhr.timeout = args.timeout;
+  // Build fetch options
+  const fetchOptions = {
+    method,
+    headers,
+  };
+
+  if (body) {
+    fetchOptions.body = body;
   }
 
-  xhr.onload = () => {
-    const status = xhr.status == 1223 ? 204 : xhr.status;
-    let body = false;
-    let err = null;
+  // Add timeout support using AbortController
+  let timeoutId;
+  if (args.timeout) {
+    const controller = new AbortController();
+    fetchOptions.signal = controller.signal;
 
-    body = xhr.response || xhr.responseText;
+    timeoutId = setTimeout(() => {
+      controller.abort();
+    }, args.timeout);
+  }
 
-    if (status < 200 || status > 599) {
-      err = 'wierd_status';
-    } else if (status >= 300) {
-      err = 'status';
-    }
-    request_done(err, status, body);
-  };
+  fetch(url, fetchOptions)
+    .then(async (response) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
 
-  xhr.onerror = () => {
-    request_done('xhr_error');
-  };
-  xhr.ontimeout = () => {
-    request_done('timeout');
-  };
+      const status = response.status;
+      let responseBody = '';
 
-  xhr.open(method, url, true);
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't read the response body, continue with empty string
+      }
 
-  _objectEach(headers, (values, name) => {
-    if (Array.isArray(values)) {
-      values.forEach((value) => {
-        xhr.setRequestHeader(name, value);
-      });
-    } else {
-      xhr.setRequestHeader(name, values);
-    }
-  });
+      let err = null;
+      if (status < 200 || status > 599) {
+        err = 'wierd_status';
+      } else if (status >= 300) {
+        err = 'status';
+      }
 
-  xhr.send(body);
+      request_done(err, status, responseBody);
+    })
+    .catch((error) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (error.name === 'AbortError') {
+        request_done('timeout');
+      } else {
+        request_done('fetch_error');
+      }
+    });
 }
 
 function _removeEvents(event_list) {
@@ -568,13 +584,13 @@ function _setupDefaultBundle() {
   g_defaultBundle.device_family = device_type;
 }
 
-function log() {
-  if (!arguments || arguments.length === 0) {
+function log(...args) {
+  if (!args || args.length === 0) {
     throw new Error('log must have arguments');
   }
   let log_line = '';
-  for (let i = 0; i < arguments.length; i++) {
-    const arg = arguments[i];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
     if (i > 0) {
       log_line += ' ';
     }
@@ -584,7 +600,7 @@ function log() {
     } else if (typeof arg === 'object') {
       try {
         log_line += JSON.stringify(arg);
-      } catch (e) {
+      } catch {
         log_line += arg;
       }
     } else {
@@ -779,11 +795,11 @@ function _pick(source, keys) {
   return dest;
 }
 
-function _union() {
+function _union(...arrays) {
   const dest = [];
 
-  for (let i = 0; i < arguments.length; i++) {
-    const array = arguments[i];
+  for (let i = 0; i < arrays.length; i++) {
+    const array = arrays[i];
     Array.prototype.push.apply(dest, array);
   }
 

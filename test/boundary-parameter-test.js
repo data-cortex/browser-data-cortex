@@ -63,8 +63,12 @@ try {
 // Import DataCortex after setting up environment
 import DataCortex from '../src/index.js';
 
-console.log('🎯 BOUNDARY PARAMETER TESTS: Max/Min Parameters for All Event Types');
-console.log('====================================================================');
+console.log(
+  '🎯 BOUNDARY PARAMETER TESTS: Max/Min Parameters for All Event Types'
+);
+console.log(
+  '===================================================================='
+);
 
 // Use the provided API key (or default invalid one)
 const testApiKey = process.env.DC_API_KEY || 'DEFINITELY_INVALID_KEY_12345';
@@ -108,9 +112,11 @@ const minRegularEvent = DataCortex.event({
   genus: 'regular',
   species: 'event',
   network: 'test-net', // Required by server
-  channel: 'test-ch',  // Required by server
+  channel: 'test-ch', // Required by server
 });
-console.log(`   ✅ Minimum regular event created with ${Object.keys(minRegularEvent).length} properties`);
+console.log(
+  `   ✅ Minimum regular event created with ${Object.keys(minRegularEvent).length} properties`
+);
 
 // MAXIMUM parameters for regular event (all possible fields)
 console.log('   🔹 Testing MAXIMUM parameters for regular event...');
@@ -127,22 +133,30 @@ const maxRegularEvent = DataCortex.event({
   channel: 'test-channel-parameter-max',
   spend_currency: 'gold-currency-max-test',
   spend_type: 'purchase-type-max-test',
-  
+
   // LONG_STRING_PROP_LIST (64 char limit each)
   group_tag: 'maximum-group-tag-parameter-for-comprehensive-boundary-testing',
   from_tag: 'maximum-from-tag-parameter-for-comprehensive-boundary-testing',
-  
+
   // NUMBER_PROP_LIST
   float1: 999999.999999,
   float2: -999999.999999,
   float3: 0.000001,
   float4: 1234567890.123456,
   spend_amount: 99999.99,
-  
+
   // OTHER_PROP_LIST (some are auto-generated, but we can include to_list)
-  to_list: ['recipient1', 'recipient2', 'recipient3', 'recipient4', 'recipient5'],
+  to_list: [
+    'recipient1',
+    'recipient2',
+    'recipient3',
+    'recipient4',
+    'recipient5',
+  ],
 });
-console.log(`   ✅ Maximum regular event created with ${Object.keys(maxRegularEvent).length} properties`);
+console.log(
+  `   ✅ Maximum regular event created with ${Object.keys(maxRegularEvent).length} properties`
+);
 
 // ============================================================================
 // ECONOMY EVENT TESTS
@@ -164,9 +178,11 @@ const minEconomyEvent = DataCortex.economyEvent({
   genus: 'economy',
   species: 'event',
   network: 'test-net', // Required by server
-  channel: 'test-ch',  // Required by server
+  channel: 'test-ch', // Required by server
 });
-console.log(`   ✅ Minimum economy event created with ${Object.keys(minEconomyEvent).length} properties`);
+console.log(
+  `   ✅ Minimum economy event created with ${Object.keys(minEconomyEvent).length} properties`
+);
 
 // MAXIMUM parameters for economy event (all possible fields)
 console.log('   🔹 Testing MAXIMUM parameters for economy event...');
@@ -175,7 +191,7 @@ const maxEconomyEvent = DataCortex.economyEvent({
   spend_currency: 'premium-gold-currency-max',
   spend_amount: 99999.99,
   spend_type: 'premium-purchase-type-max',
-  
+
   // All STRING_PROP_LIST
   kingdom: 'maximum-economy-event-test',
   phylum: 'comprehensive-economy-testing',
@@ -186,21 +202,23 @@ const maxEconomyEvent = DataCortex.economyEvent({
   species: 'full-economy-validation',
   network: 'economy-network-parameter',
   channel: 'economy-channel-parameter',
-  
+
   // LONG_STRING_PROP_LIST
   group_tag: 'maximum-economy-group-tag-for-comprehensive-boundary-testing',
   from_tag: 'maximum-economy-from-tag-for-comprehensive-boundary-testing',
-  
+
   // NUMBER_PROP_LIST
   float1: 888888.888888,
   float2: -888888.888888,
   float3: 0.000888,
   float4: 8888888888.888888,
-  
+
   // OTHER_PROP_LIST
   to_list: ['economy-recipient1', 'economy-recipient2', 'economy-recipient3'],
 });
-console.log(`   ✅ Maximum economy event created with ${Object.keys(maxEconomyEvent).length} properties`);
+console.log(
+  `   ✅ Maximum economy event created with ${Object.keys(maxEconomyEvent).length} properties`
+);
 
 // ============================================================================
 // MESSAGE SEND EVENT TESTS
@@ -222,9 +240,11 @@ const minMessageEvent = DataCortex.messageSendEvent({
   genus: 'message',
   species: 'event',
   network: 'test-net', // Required by server
-  channel: 'test-ch',  // Required by server
+  channel: 'test-ch', // Required by server
 });
-console.log(`   ✅ Minimum message event created with ${Object.keys(minMessageEvent).length} properties`);
+console.log(
+  `   ✅ Minimum message event created with ${Object.keys(minMessageEvent).length} properties`
+);
 
 // MAXIMUM parameters for message send event (all possible fields)
 console.log('   🔹 Testing MAXIMUM parameters for message send event...');
@@ -234,12 +254,12 @@ const maxMessageEvent = DataCortex.messageSendEvent({
   to_tag: 'maximum-receiver-tag-for-comprehensive-message-boundary-test',
   to_list: [
     'message-recipient-1-max-test',
-    'message-recipient-2-max-test', 
+    'message-recipient-2-max-test',
     'message-recipient-3-max-test',
     'message-recipient-4-max-test',
-    'message-recipient-5-max-test'
+    'message-recipient-5-max-test',
   ],
-  
+
   // All STRING_PROP_LIST
   kingdom: 'maximum-message-event-test',
   phylum: 'comprehensive-message-testing',
@@ -252,10 +272,10 @@ const maxMessageEvent = DataCortex.messageSendEvent({
   channel: 'message-channel-parameter',
   spend_currency: 'message-currency-parameter',
   spend_type: 'message-spend-type-param',
-  
+
   // LONG_STRING_PROP_LIST
   group_tag: 'maximum-message-group-tag-for-comprehensive-boundary-testing',
-  
+
   // NUMBER_PROP_LIST
   float1: 777777.777777,
   float2: -777777.777777,
@@ -263,7 +283,9 @@ const maxMessageEvent = DataCortex.messageSendEvent({
   float4: 7777777777.777777,
   spend_amount: 77777.77,
 });
-console.log(`   ✅ Maximum message event created with ${Object.keys(maxMessageEvent).length} properties`);
+console.log(
+  `   ✅ Maximum message event created with ${Object.keys(maxMessageEvent).length} properties`
+);
 
 // ============================================================================
 // APP LOG EVENT TESTS
@@ -277,28 +299,34 @@ console.log('   🔹 Testing MINIMUM parameters for log event...');
 const minLogEvent = DataCortex.logEvent({
   log_line: 'Minimum log message for boundary testing',
 });
-console.log(`   ✅ Minimum log event created with ${Object.keys(minLogEvent).length} properties`);
+console.log(
+  `   ✅ Minimum log event created with ${Object.keys(minLogEvent).length} properties`
+);
 
 // MAXIMUM parameters for log event (all possible fields)
 console.log('   🔹 Testing MAXIMUM parameters for log event...');
 const maxLogEvent = DataCortex.logEvent({
   // LOG_STRING_PROP_MAP (with their specific limits)
   hostname: 'maximum-hostname-parameter-for-comprehensive-boundary-testing', // 64 chars
-  filename: 'maximum-filename-parameter-for-comprehensive-boundary-testing-with-very-long-path-name-that-reaches-the-limit-of-256-characters-for-complete-validation-of-the-boundary-conditions-in-the-datacortex-library-testing-framework', // 256 chars
+  filename:
+    'maximum-filename-parameter-for-comprehensive-boundary-testing-with-very-long-path-name-that-reaches-the-limit-of-256-characters-for-complete-validation-of-the-boundary-conditions-in-the-datacortex-library-testing-framework', // 256 chars
   log_level: 'maximum-log-level-parameter-for-comprehensive-boundary-test', // 64 chars
   device_tag: 'maximum-device-tag-parameter-for-comprehensive-boundary-t', // 62 chars
   user_tag: 'maximum-user-tag-parameter-for-comprehensive-boundary-te', // 62 chars
   remote_address: 'maximum-remote-address-parameter-for-comprehensive-boundary', // 64 chars
-  log_line: 'Maximum log line parameter for comprehensive boundary testing with a very long message that demonstrates the library can handle extensive log content up to the 65535 character limit. This message includes various details about the testing scenario, parameter validation, boundary conditions, and comprehensive coverage of all possible log event properties. The purpose is to ensure that the DataCortex library properly handles log events with maximum parameter lengths and that the server accepts these large payloads without issues. This extensive testing helps validate the robustness of both client-side parameter handling and server-side processing capabilities.', // 65535 chars max
-  
+  log_line:
+    'Maximum log line parameter for comprehensive boundary testing with a very long message that demonstrates the library can handle extensive log content up to the 65535 character limit. This message includes various details about the testing scenario, parameter validation, boundary conditions, and comprehensive coverage of all possible log event properties. The purpose is to ensure that the DataCortex library properly handles log events with maximum parameter lengths and that the server accepts these large payloads without issues. This extensive testing helps validate the robustness of both client-side parameter handling and server-side processing capabilities.', // 65535 chars max
+
   // LOG_NUMBER_PROP_LIST
   repsonse_bytes: 999999999,
   response_ms: 999999.999,
-  
+
   // LOG_OTHER_PROP_LIST
   event_datetime: new Date().toISOString(),
 });
-console.log(`   ✅ Maximum log event created with ${Object.keys(maxLogEvent).length} properties`);
+console.log(
+  `   ✅ Maximum log event created with ${Object.keys(maxLogEvent).length} properties`
+);
 
 // ============================================================================
 // ADDITIONAL BOUNDARY TESTS
@@ -325,7 +353,9 @@ DataCortex.log(
   undefined
 );
 
-console.log('\n3. Calling flush() to send ALL boundary test events to server...');
+console.log(
+  '\n3. Calling flush() to send ALL boundary test events to server...'
+);
 DataCortex.flush();
 
 console.log('\n4. Waiting for server responses to all boundary tests...');
@@ -336,7 +366,7 @@ setTimeout(() => {
   console.log('==========================');
   console.log('Total error log calls:', errorLogCalls.length);
   console.log('Library ready status:', DataCortex.isReady());
-  
+
   // Analyze all error logs
   if (errorLogCalls.length > 0) {
     console.log('\n🔍 ERROR ANALYSIS:');
@@ -344,11 +374,13 @@ setTimeout(() => {
       console.log(`   Error ${index + 1}: ${call.join(' ')}`);
     });
   }
-  
+
   // Determine validity based on server responses
   if (errorLogCalls.length === 0) {
     // No errors = valid API key and all boundary tests accepted
-    console.log('\n✅ BOUNDARY TEST RESULT: All parameter combinations ACCEPTED');
+    console.log(
+      '\n✅ BOUNDARY TEST RESULT: All parameter combinations ACCEPTED'
+    );
     console.log('   ✅ Minimum parameter events: ACCEPTED by server');
     console.log('   ✅ Maximum parameter events: ACCEPTED by server');
     console.log('   ✅ Regular events (min/max): ACCEPTED');
@@ -361,36 +393,39 @@ setTimeout(() => {
   } else {
     // Errors logged = invalid API key or parameter issues
     console.log('\n❌ BOUNDARY TEST RESULT: Issues detected');
-    
+
     // Check if library was disabled (403 error)
     const libraryReady = DataCortex.isReady();
     console.log('   🔒 Library disabled after errors:', !libraryReady);
-    
+
     // Analyze error types
-    const hasApiKeyError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('Bad API Key') || 
-          arg.includes('Invalid API Key') ||
-          arg.includes('403') ||
-          arg.includes('Forbidden')
-        )
+    const hasApiKeyError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad API Key') ||
+            arg.includes('Invalid API Key') ||
+            arg.includes('403') ||
+            arg.includes('Forbidden'))
       )
     );
-    
-    const hasBadRequestError = errorLogCalls.some(call => 
-      call.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('Bad request') ||
-          arg.includes('400')
-        )
+
+    const hasBadRequestError = errorLogCalls.some((call) =>
+      call.some(
+        (arg) =>
+          typeof arg === 'string' &&
+          (arg.includes('Bad request') || arg.includes('400'))
       )
     );
-    
+
     if (hasApiKeyError) {
       console.log('   🎯 Server rejected due to invalid API key');
-      console.log('   ✅ Boundary parameter validation cannot proceed without valid key');
-      console.log('\n🎯 EXPECTED: Invalid API key rejected (boundary tests would pass with valid key)');
+      console.log(
+        '   ✅ Boundary parameter validation cannot proceed without valid key'
+      );
+      console.log(
+        '\n🎯 EXPECTED: Invalid API key rejected (boundary tests would pass with valid key)'
+      );
     } else if (hasBadRequestError) {
       console.log('   ⚠️  Server returned 400 Bad Request');
       console.log('   This could indicate parameter validation issues');
@@ -398,7 +433,7 @@ setTimeout(() => {
     } else {
       console.log('   ⚠️  Unexpected error types detected');
     }
-    
+
     console.log('\n❌ FAILURE: Boundary test issues detected');
     process.exit(1); // Failure
   }
