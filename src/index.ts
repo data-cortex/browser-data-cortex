@@ -1,3 +1,19 @@
+import {
+  STRING_PROP_LIST,
+  LONG_STRING_PROP_LIST,
+  NUMBER_PROP_LIST,
+  OTHER_PROP_LIST,
+  LOG_NUMBER_PROP_LIST,
+  LOG_STRING_PROP_MAP,
+  LOG_OTHER_PROP_LIST,
+} from './constants';
+
+// Constants
+const EVENT_SEND_COUNT = 10;
+const LOG_SEND_COUNT = 10;
+const DELAY_MS = 2 * 1000;
+const API_BASE_URL = 'https://api.data-cortex.com';
+
 // Type definitions
 export interface InitOptions {
   api_key: string;
@@ -90,44 +106,13 @@ type RequestCallback = (
   body?: string
 ) => void;
 
-// Constants
-const EVENT_SEND_COUNT = 10;
-const LOG_SEND_COUNT = 10;
-const DELAY_MS = 2 * 1000;
-
-const STRING_PROP_LIST = [
-  'kingdom',
-  'phylum',
-  'class',
-  'order',
-  'family',
-  'genus',
-  'species',
-  'spend_currency',
-  'spend_type',
-  'network',
-  'channel',
-];
-const LONG_STRING_PROP_LIST = ['group_tag', 'from_tag'];
-
-const NUMBER_PROP_LIST = [
-  'float1',
-  'float2',
-  'float3',
-  'float4',
-  'spend_amount',
-];
-
-const OTHER_PROP_LIST = ['type', 'event_index', 'event_datetime', 'to_list'];
-
+// Computed constants
 const EVENT_PROP_LIST = _union(
   STRING_PROP_LIST,
   LONG_STRING_PROP_LIST,
   NUMBER_PROP_LIST,
   OTHER_PROP_LIST
 );
-
-const API_BASE_URL = 'https://api.data-cortex.com';
 
 // Global variables
 let g_apiBaseUrl: string = API_BASE_URL;
@@ -732,20 +717,6 @@ export function log(...args: any[]) {
   }
   logEvent({ log_line });
 }
-
-const LOG_NUMBER_PROP_LIST = ['repsonse_bytes', 'response_ms'];
-
-const LOG_STRING_PROP_MAP: Record<string, number> = {
-  hostname: 64,
-  filename: 256,
-  log_level: 64,
-  device_tag: 62,
-  user_tag: 62,
-  remote_address: 64,
-  log_line: 65535,
-};
-
-const LOG_OTHER_PROP_LIST = ['event_datetime'];
 
 const LOG_PROP_LIST = _union(
   LOG_NUMBER_PROP_LIST,
