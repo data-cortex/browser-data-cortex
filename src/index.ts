@@ -161,7 +161,7 @@ function _union(...arrays: string[][]): string[] {
   return dest;
 }
 // Storage functions
-function _getStoredItem<T>(name: string, def: T | (() => T)): T {
+function _getStoredItem<T>(name: string): T | undefined {
   let ret: T | undefined;
   if (name in window.localStorage) {
     const json = window.localStorage[name];
@@ -169,14 +169,6 @@ function _getStoredItem<T>(name: string, def: T | (() => T)): T {
       ret = JSON.parse(json);
     } catch {
       // _errorLog("Failed to parse:",name,"json:",json);
-    }
-  }
-
-  if (ret === undefined) {
-    if (typeof def === 'function') {
-      ret = (def as () => T)();
-    } else {
-      ret = def;
     }
   }
   return ret;
@@ -192,7 +184,7 @@ function _clearStoredItem(name: string): void {
 }
 
 function _loadDeviceTag(): string {
-  let text = _getStoredItem('dc.device_tag', false as string | false);
+  let text = _getStoredItem<string | false>('dc.device_tag') ?? false;
   if (!text) {
     text = _generateRandomString();
     _setStoredItem('dc.device_tag', text);
@@ -220,33 +212,33 @@ function _generateRandomString(): string {
 export function init(opts: InitOptions): void {
   const baseUrl =
     opts.base_url ??
-    _getStoredItem('dc.base_url', false as string | false) ??
+    _getStoredItem<string | false>('dc.base_url') ??
     API_BASE_URL;
   g_apiBaseUrl = typeof baseUrl === 'string' ? baseUrl : API_BASE_URL;
 
   g_apiKey = opts.api_key;
   g_orgName = opts.org_name;
   g_appVer = opts.app_ver ?? '0';
-  g_userTag = _getStoredItem('dc.user_tag', false as string | false);
+  g_userTag = _getStoredItem<string | false>('dc.user_tag') ?? false;
 
   // Set custom error logging function if provided
   if (opts.errorLog && typeof opts.errorLog === 'function') {
     g_errorLog = opts.errorLog;
   }
 
-  g_eventList = _getStoredItem('dc.event_list', [] as InternalEvent[]);
-  g_nextIndex = _getStoredItem('dc.next_index', 0);
+  g_eventList = _getStoredItem<InternalEvent[]>('dc.event_list') ?? [];
+  g_nextIndex = _getStoredItem<number>('dc.next_index') ?? 0;
   g_eventList.forEach((e) => {
     if (e.event_index >= g_nextIndex) {
       g_nextIndex = e.event_index + 1;
     }
   });
 
-  g_logList = _getStoredItem('dc.log_list', [] as LogEventProps[]);
+  g_logList = _getStoredItem<LogEventProps[]>('dc.log_list') ?? [];
 
-  g_lastDAUTime = _getStoredItem('dc.last_dau_time', 0);
+  g_lastDAUTime = _getStoredItem<number>('dc.last_dau_time') ?? 0;
   g_hasSendInstall =
-    _getStoredItem('dc.has_sent_install', 0) || Boolean(g_lastDAUTime);
+    (_getStoredItem<boolean>('dc.has_sent_install') ?? false) || Boolean(g_lastDAUTime);
   if (opts.device_tag) {
     g_deviceTag = opts.device_tag;
     _setStoredItem('dc.device_tag', opts.device_tag);
