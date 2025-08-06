@@ -150,19 +150,6 @@ function _errorLog(...args: unknown[]): void {
 
 // Utility functions
 
-function _pick(
-  source: Record<string, unknown>,
-  keys: string[]
-): Record<string, unknown> {
-  const dest: Record<string, unknown> = {};
-  keys.forEach((key) => {
-    if (key in source) {
-      dest[key] = source[key];
-    }
-  });
-  return dest;
-}
-
 function _union(...arrays: string[][]): string[] {
   const dest: string[] = [];
 
@@ -416,11 +403,14 @@ function _internalEventAdd(props: InternalEvent): void {
     }
   });
 
-  const e = _pick(
-    props as unknown as Record<string, unknown>,
-    EVENT_PROP_LIST
-  ) as unknown as InternalEvent;
-  g_eventList.push(e);
+  const e: Record<string, unknown> = {};
+  for (let i = 0; i < EVENT_PROP_LIST.length; i++) {
+    const key = EVENT_PROP_LIST[i];
+    if (key in props) {
+      e[key] = (props as unknown as Record<string, unknown>)[key];
+    }
+  }
+  g_eventList.push(e as unknown as InternalEvent);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
 }
@@ -734,25 +724,28 @@ export function logEvent(props: LogEventProps): void {
       }
     }
   }
-  for (const p in LOG_NUMBER_PROP_LIST) {
+  LOG_NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
-      let val = props[p] as number | string;
+      let val = (props as unknown as Record<string, unknown>)[p];
       if (typeof val !== 'number') {
-        val = parseFloat(val);
+        val = parseFloat(val as string);
       }
-      if (isFinite(val)) {
-        props[p] = val;
+      if (isFinite(val as number)) {
+        (props as unknown as Record<string, unknown>)[p] = val;
       } else {
-        props[p] = undefined;
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
-  }
+  });
 
-  const e = _pick(
-    props as unknown as Record<string, unknown>,
-    LOG_PROP_LIST
-  ) as unknown as LogEventProps;
-  g_logList.push(e);
+  const e: Record<string, unknown> = {};
+  for (let i = 0; i < LOG_PROP_LIST.length; i++) {
+    const key = LOG_PROP_LIST[i];
+    if (key in props) {
+      e[key] = (props as unknown as Record<string, unknown>)[key];
+    }
+  }
+  g_logList.push(e as unknown as LogEventProps);
   _setStoredItem('dc.log_list', g_logList);
   _sendLogsLater();
 }
