@@ -51,7 +51,7 @@ interface LogEventProps {
 declare function init(opts: InitOptions): void;
 declare function isReady(): boolean;
 declare function getDeviceTag(): string | false;
-declare function addUserTag(userTag: string | null | undefined): void;
+declare function addUserTag(userTag: string | null): void;
 declare function event(props: EventProps): void;
 declare function economyEvent(props: EconomyEventProps): void;
 declare function messageSendEvent(props: MessageSendEventProps): void;

@@ -107,15 +107,18 @@ type RequestCallback = (
   body?: string
 ) => void;
 
-// Computed constants
-const EVENT_PROP_LIST = _union(
-  STRING_PROP_LIST,
-  LONG_STRING_PROP_LIST,
-  NUMBER_PROP_LIST,
-  OTHER_PROP_LIST
-);
+const EVENT_PROP_LIST = [
+  ...STRING_PROP_LIST,
+  ...LONG_STRING_PROP_LIST,
+  ...NUMBER_PROP_LIST,
+  ...OTHER_PROP_LIST,
+];
+const LOG_PROP_LIST = [
+  ...LOG_NUMBER_PROP_LIST,
+  ...Object.keys(LOG_STRING_PROP_MAP),
+  ...LOG_OTHER_PROP_LIST,
+];
 
-// Global variables
 let g_apiBaseUrl: string = API_BASE_URL;
 
 let g_isReady: boolean = false;
@@ -134,6 +137,10 @@ let g_sessionKey: string | false = false;
 let g_deviceTag: string | false = false;
 let g_nextIndex: number = 0;
 
+let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
+let g_isLogSending: boolean = false;
+let g_logDelayCount: number = 0;
+
 let g_delayCount: number = 0;
 
 const g_defaultBundle: DefaultBundle = {};
@@ -148,19 +155,6 @@ function _errorLog(...args: unknown[]): void {
   g_errorLog(...args);
 }
 
-// Utility functions
-
-function _union(...arrays: string[][]): string[] {
-  const dest: string[] = [];
-
-  for (let i = 0; i < arrays.length; i++) {
-    const array = arrays[i];
-    Array.prototype.push.apply(dest, array);
-  }
-
-  return dest;
-}
-// Storage functions
 function _getStoredItem<T>(name: string): T | undefined {
   let ret: T | undefined;
   if (name in window.localStorage) {
@@ -173,12 +167,10 @@ function _getStoredItem<T>(name: string): T | undefined {
   }
   return ret;
 }
-
 function _setStoredItem(name: string, value: unknown): void {
   const json = JSON.stringify(value);
   window.localStorage[name] = json;
 }
-
 function _clearStoredItem(name: string): void {
   delete window.localStorage[name];
 }
@@ -191,7 +183,6 @@ function _loadDeviceTag(): string {
   }
   return text;
 }
-
 function _generateRandomString(): string {
   let text = '';
   if (window.crypto?.getRandomValues) {
@@ -238,7 +229,8 @@ export function init(opts: InitOptions): void {
 
   g_lastDAUTime = _getStoredItem<number>('dc.last_dau_time') ?? 0;
   g_hasSendInstall =
-    (_getStoredItem<boolean>('dc.has_sent_install') ?? false) || Boolean(g_lastDAUTime);
+    (_getStoredItem<boolean>('dc.has_sent_install') ?? false) ||
+    Boolean(g_lastDAUTime);
   if (opts.device_tag) {
     g_deviceTag = opts.device_tag;
     _setStoredItem('dc.device_tag', opts.device_tag);
@@ -693,12 +685,6 @@ export function log(...args: unknown[]): void {
   }
   logEvent({ log_line });
 }
-
-const LOG_PROP_LIST = _union(
-  LOG_NUMBER_PROP_LIST,
-  Object.keys(LOG_STRING_PROP_MAP),
-  LOG_OTHER_PROP_LIST
-);
 export function logEvent(props: LogEventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object.');
@@ -757,11 +743,6 @@ function _isError(e: unknown): e is Error {
     typeof (e as Error).message === 'string'
   );
 }
-
-let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
-let g_isLogSending: boolean = false;
-let g_logDelayCount: number = 0;
-
 function _sendLogsLater(delay: number = 0): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = setTimeout(() => {
