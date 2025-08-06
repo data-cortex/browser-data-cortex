@@ -263,11 +263,21 @@ runner.test('should track basic event', () => {
 
   const result = DataCortex.event(eventData);
 
-  assertEqual(result.type, 'event');
-  assertEqual(result.kingdom, 'test-kingdom');
-  assertEqual(result.float1, 123.45);
-  assertEqual(typeof result.event_index, 'number');
-  assertEqual(typeof result.event_datetime, 'string');
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored in localStorage
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  assert(eventList.length > 0, 'Event should be stored');
+
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.type, 'event');
+  assertEqual(lastEvent.kingdom, 'test-kingdom');
+  assertEqual(lastEvent.float1, 123.45);
+  assertEqual(typeof lastEvent.event_index, 'number');
+  assertEqual(typeof lastEvent.event_datetime, 'string');
 });
 
 runner.test('should throw error for invalid event props', () => {
@@ -296,7 +306,15 @@ runner.test('should truncate string properties to 32 characters', () => {
     kingdom: longString,
   });
 
-  assertEqual(result.kingdom.length, 32);
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with truncated string
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.kingdom.length, 32);
 });
 
 runner.test('should handle number conversion', () => {
@@ -311,9 +329,17 @@ runner.test('should handle number conversion', () => {
     float3: Infinity,
   });
 
-  assertEqual(result.float1, 123.45);
-  assertEqual(result.float2, undefined);
-  assertEqual(result.float3, undefined);
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with converted numbers
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.float1, 123.45);
+  assertEqual(lastEvent.float2, undefined);
+  assertEqual(lastEvent.float3, undefined);
 });
 
 runner.test('should track economy event', () => {
@@ -332,10 +358,18 @@ runner.test('should track economy event', () => {
 
   const result = DataCortex.economyEvent(eventData);
 
-  assertEqual(result.type, 'economy');
-  assertEqual(result.spend_currency, 'USD');
-  assertEqual(result.spend_amount, 9.99);
-  assertEqual(result.spend_type, 'purchase');
+  // economyEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored in localStorage
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.type, 'economy');
+  assertEqual(lastEvent.spend_currency, 'USD');
+  assertEqual(lastEvent.spend_amount, 9.99);
+  assertEqual(lastEvent.spend_type, 'purchase');
 });
 
 runner.test('should throw error for missing spend_currency', () => {
@@ -378,10 +412,18 @@ runner.test('should track message send event with to_tag', () => {
 
   const result = DataCortex.messageSendEvent(eventData);
 
-  assertEqual(result.type, 'message_send');
-  assertEqual(result.from_tag, 'user1');
-  assert(Array.isArray(result.to_list));
-  assertEqual(result.to_list[0], 'user2');
+  // messageSendEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored in localStorage
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.type, 'message_send');
+  assertEqual(lastEvent.from_tag, 'user1');
+  assert(Array.isArray(lastEvent.to_list));
+  assertEqual(lastEvent.to_list[0], 'user2');
 });
 
 runner.test('should track message send event with to_list', () => {
@@ -398,10 +440,18 @@ runner.test('should track message send event with to_list', () => {
 
   const result = DataCortex.messageSendEvent(eventData);
 
-  assertEqual(result.type, 'message_send');
-  assertEqual(result.to_list.length, 2);
-  assertEqual(result.to_list[0], 'user2');
-  assertEqual(result.to_list[1], 'user3');
+  // messageSendEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored in localStorage
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.type, 'message_send');
+  assertEqual(lastEvent.to_list.length, 2);
+  assertEqual(lastEvent.to_list[0], 'user2');
+  assertEqual(lastEvent.to_list[1], 'user3');
 });
 
 runner.test('should throw error for missing from_tag', () => {
@@ -472,10 +522,18 @@ runner.test('should track log event', () => {
 
   const result = DataCortex.logEvent(logData);
 
-  assertEqual(result.log_line, 'test log message');
-  assertEqual(result.log_level, 'info');
-  assertEqual(result.hostname, 'example.com');
-  assertEqual(typeof result.event_datetime, 'string');
+  // logEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that log was stored in localStorage
+  const logList = JSON.parse(
+    global.localStorage.getItem('dc.log_list') || '[]'
+  );
+  const lastLog = logList[logList.length - 1];
+  assertEqual(lastLog.log_line, 'test log message');
+  assertEqual(lastLog.log_level, 'info');
+  assertEqual(lastLog.hostname, 'example.com');
+  assertEqual(typeof lastLog.event_datetime, 'string');
 });
 
 runner.test('should truncate log string properties according to limits', () => {
@@ -490,8 +548,16 @@ runner.test('should truncate log string properties according to limits', () => {
     log_line: longString,
   });
 
-  assertEqual(result.hostname.length, 64);
-  assertEqual(result.log_line.length, 1000); // log_line has higher limit
+  // logEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that log was stored with truncated properties
+  const logList = JSON.parse(
+    global.localStorage.getItem('dc.log_list') || '[]'
+  );
+  const lastLog = logList[logList.length - 1];
+  assertEqual(lastLog.hostname.length, 64);
+  assertEqual(lastLog.log_line.length, 1000); // log_line has higher limit
 });
 
 runner.test('should persist events in localStorage', () => {
@@ -547,7 +613,16 @@ runner.test('should restore state from localStorage on init', () => {
 
   // Add new event to test index continuation
   const result = DataCortex.event({ kingdom: 'new' });
-  assertEqual(result.event_index, 6);
+
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with correct index
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.event_index, 6);
 });
 
 runner.test('should handle empty string properties', () => {
@@ -563,10 +638,18 @@ runner.test('should handle empty string properties', () => {
     float1: 0,
   });
 
-  assertEqual(result.kingdom, undefined);
-  assertEqual(result.phylum, undefined);
-  assertEqual(result.class, undefined);
-  assertEqual(result.float1, 0);
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with proper handling of empty values
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.kingdom, undefined);
+  assertEqual(lastEvent.phylum, undefined);
+  assertEqual(lastEvent.class, undefined);
+  assertEqual(lastEvent.float1, 0);
 });
 
 runner.test('should handle crypto fallback', () => {
@@ -611,7 +694,15 @@ runner.test('should handle long string properties (64 char limit)', () => {
     from_tag: longString, // from_tag has 64-char limit, not group_tag
   });
 
-  assertEqual(result.from_tag.length, 64);
+  // event() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with truncated from_tag
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.from_tag.length, 64);
 });
 
 runner.test('should handle invalid economy event props', () => {
@@ -685,11 +776,19 @@ runner.test('should combine to_tag and to_list in message send event', () => {
 
   const result = DataCortex.messageSendEvent(eventData);
 
-  assertEqual(result.type, 'message_send');
-  assertEqual(result.to_list.length, 3);
-  assert(result.to_list.includes('user2'));
-  assert(result.to_list.includes('user3'));
-  assert(result.to_list.includes('user4'));
+  // messageSendEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that event was stored with combined to_list
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
+  assertEqual(lastEvent.type, 'message_send');
+  assertEqual(lastEvent.to_list.length, 3);
+  assert(lastEvent.to_list.includes('user2'));
+  assert(lastEvent.to_list.includes('user3'));
+  assert(lastEvent.to_list.includes('user4'));
 });
 
 runner.test('should throw error for invalid logEvent props', () => {
@@ -749,8 +848,16 @@ runner.test('should handle number conversion in log events', () => {
     response_ms: 'invalid',
   });
 
-  assertEqual(result.repsonse_bytes, 1024);
-  assertEqual(result.response_ms, undefined);
+  // logEvent() now returns void
+  assertEqual(result, undefined);
+
+  // Check that log was stored with converted numbers
+  const logList = JSON.parse(
+    global.localStorage.getItem('dc.log_list') || '[]'
+  );
+  const lastLog = logList[logList.length - 1];
+  assertEqual(lastLog.repsonse_bytes, 1024);
+  assertEqual(lastLog.response_ms, undefined);
 });
 
 runner.test('should initialize with custom base URL', () => {
@@ -1306,13 +1413,22 @@ runner.test('should handle edge cases in property type conversion', () => {
     genus: 'test',
     species: 'test',
   });
+
+  // event() now returns void
+  assertEqual(eventWithLongString, undefined);
+
+  // Check that event was stored with truncated string
+  const truncEventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastTruncEvent = truncEventList[truncEventList.length - 1];
   assertEqual(
-    eventWithLongString.kingdom.length,
+    lastTruncEvent.kingdom.length,
     32,
     'Long string should be truncated to 32 chars'
   );
   assertEqual(
-    eventWithLongString.kingdom,
+    lastTruncEvent.kingdom,
     'a'.repeat(32),
     'Truncated string should match expected'
   );
@@ -1489,12 +1605,21 @@ runner.test('should accept maximum parameters for all event types', () => {
       'recipient5',
     ],
   });
+
+  // event() now returns void
+  assertEqual(maxRegularEvent, undefined);
+
+  // Check that event was stored in localStorage
+  const eventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEvent = eventList[eventList.length - 1];
   assert(
-    maxRegularEvent.kingdom === 'maximum-parameters-test-event',
+    lastEvent.kingdom === 'maximum-parameters-test-event',
     'Maximum regular event should be created'
   );
   console.log(
-    `   ✅ Maximum regular event: ${Object.keys(maxRegularEvent).length} properties`
+    `   ✅ Maximum regular event: ${Object.keys(lastEvent).length} properties`
   );
 
   // Test maximum economy event
@@ -1519,12 +1644,21 @@ runner.test('should accept maximum parameters for all event types', () => {
     float4: 8888888888.888888,
     to_list: ['economy-recipient1', 'economy-recipient2', 'economy-recipient3'],
   });
+
+  // economyEvent() now returns void
+  assertEqual(maxEconomyEvent, undefined);
+
+  // Check that event was stored in localStorage
+  const economyEventList = JSON.parse(
+    global.localStorage.getItem('dc.event_list') || '[]'
+  );
+  const lastEconomyEvent = economyEventList[economyEventList.length - 1];
   assert(
-    maxEconomyEvent.spend_currency === 'premium-gold-currency-max',
+    lastEconomyEvent.spend_currency === 'premium-gold-currency-max',
     'Maximum economy event should be created'
   );
   console.log(
-    `   ✅ Maximum economy event: ${Object.keys(maxEconomyEvent).length} properties`
+    `   ✅ Maximum economy event: ${Object.keys(lastEconomyEvent).length} properties`
   );
 
   // Test maximum log event
@@ -1543,12 +1677,21 @@ runner.test('should accept maximum parameters for all event types', () => {
     response_ms: 999999.999,
     event_datetime: new Date().toISOString(),
   });
+
+  // logEvent() now returns void
+  assertEqual(maxLogEvent, undefined);
+
+  // Check that log was stored in localStorage
+  const maxLogList = JSON.parse(
+    global.localStorage.getItem('dc.log_list') || '[]'
+  );
+  const lastMaxLog = maxLogList[maxLogList.length - 1];
   assert(
-    maxLogEvent.log_line.includes('Maximum log line'),
+    lastMaxLog.log_line.includes('Maximum log line'),
     'Maximum log event should be created'
   );
   console.log(
-    `   ✅ Maximum log event: ${Object.keys(maxLogEvent).length} properties`
+    `   ✅ Maximum log event: ${Object.keys(lastMaxLog).length} properties`
   );
 
   console.log('   ✅ All maximum parameter tests passed');

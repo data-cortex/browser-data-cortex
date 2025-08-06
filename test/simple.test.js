@@ -88,11 +88,20 @@ describe('DataCortex Library Tests', () => {
 
       const result = DataCortex.event(eventData);
 
-      assert.strictEqual(result.type, 'event');
-      assert.strictEqual(result.kingdom, 'test-kingdom');
-      assert.strictEqual(result.float1, 123.45);
-      assert.strictEqual(typeof result.event_index, 'number');
-      assert.strictEqual(typeof result.event_datetime, 'string');
+      // event() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored in localStorage
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      assert.strictEqual(eventList.length >= 1, true);
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.type, 'event');
+      assert.strictEqual(lastEvent.kingdom, 'test-kingdom');
+      assert.strictEqual(lastEvent.float1, 123.45);
+      assert.strictEqual(typeof lastEvent.event_index, 'number');
+      assert.strictEqual(typeof lastEvent.event_datetime, 'string');
     });
 
     test('should throw error for invalid event props', () => {
@@ -111,7 +120,15 @@ describe('DataCortex Library Tests', () => {
         kingdom: longString,
       });
 
-      assert.strictEqual(result.kingdom.length, 32);
+      // event() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored with truncated string
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.kingdom.length, 32);
     });
 
     test('should handle number conversion', () => {
@@ -121,9 +138,17 @@ describe('DataCortex Library Tests', () => {
         float3: Infinity,
       });
 
-      assert.strictEqual(result.float1, 123.45);
-      assert.strictEqual(result.float2, undefined);
-      assert.strictEqual(result.float3, undefined);
+      // event() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored with converted numbers
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.float1, 123.45);
+      assert.strictEqual(lastEvent.float2, undefined);
+      assert.strictEqual(lastEvent.float3, undefined);
     });
   });
 
@@ -146,10 +171,18 @@ describe('DataCortex Library Tests', () => {
 
       const result = DataCortex.economyEvent(eventData);
 
-      assert.strictEqual(result.type, 'economy');
-      assert.strictEqual(result.spend_currency, 'USD');
-      assert.strictEqual(result.spend_amount, 9.99);
-      assert.strictEqual(result.spend_type, 'purchase');
+      // economyEvent() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored in localStorage
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.type, 'economy');
+      assert.strictEqual(lastEvent.spend_currency, 'USD');
+      assert.strictEqual(lastEvent.spend_amount, 9.99);
+      assert.strictEqual(lastEvent.spend_type, 'purchase');
     });
 
     test('should throw error for missing spend_currency', () => {
@@ -195,9 +228,17 @@ describe('DataCortex Library Tests', () => {
 
       const result = DataCortex.messageSendEvent(eventData);
 
-      assert.strictEqual(result.type, 'message_send');
-      assert.strictEqual(result.from_tag, 'user1');
-      assert.deepStrictEqual(result.to_list, ['user2']);
+      // messageSendEvent() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored in localStorage
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.type, 'message_send');
+      assert.strictEqual(lastEvent.from_tag, 'user1');
+      assert.deepStrictEqual(lastEvent.to_list, ['user2']);
     });
 
     test('should track message send event with to_list', () => {
@@ -209,8 +250,16 @@ describe('DataCortex Library Tests', () => {
 
       const result = DataCortex.messageSendEvent(eventData);
 
-      assert.strictEqual(result.type, 'message_send');
-      assert.deepStrictEqual(result.to_list, ['user2', 'user3']);
+      // messageSendEvent() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored in localStorage
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.type, 'message_send');
+      assert.deepStrictEqual(lastEvent.to_list, ['user2', 'user3']);
     });
 
     test('should throw error for missing from_tag', () => {
@@ -239,14 +288,18 @@ describe('DataCortex Library Tests', () => {
     });
 
     test('should log simple message', () => {
-      DataCortex.log('test message');
+      const result = DataCortex.log('test message');
+
+      // log() now returns void
+      assert.strictEqual(result, undefined);
 
       // Check that log was stored
       const logList = JSON.parse(
         global.localStorage.getItem('dc.log_list') || '[]'
       );
-      assert.strictEqual(logList.length, 1);
-      assert.strictEqual(logList[0].log_line, 'test message');
+      assert.strictEqual(logList.length >= 1, true);
+      const lastLog = logList[logList.length - 1];
+      assert.strictEqual(lastLog.log_line, 'test message');
     });
 
     test('should log multiple arguments', () => {
@@ -282,10 +335,18 @@ describe('DataCortex Library Tests', () => {
 
       const result = DataCortex.logEvent(logData);
 
-      assert.strictEqual(result.log_line, 'test log message');
-      assert.strictEqual(result.log_level, 'info');
-      assert.strictEqual(result.hostname, 'example.com');
-      assert.strictEqual(typeof result.event_datetime, 'string');
+      // logEvent() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that log was stored in localStorage
+      const logList = JSON.parse(
+        global.localStorage.getItem('dc.log_list') || '[]'
+      );
+      const lastLog = logList[logList.length - 1];
+      assert.strictEqual(lastLog.log_line, 'test log message');
+      assert.strictEqual(lastLog.log_level, 'info');
+      assert.strictEqual(lastLog.hostname, 'example.com');
+      assert.strictEqual(typeof lastLog.event_datetime, 'string');
     });
 
     test('should throw error for invalid props', () => {
@@ -301,8 +362,16 @@ describe('DataCortex Library Tests', () => {
         log_line: longString,
       });
 
-      assert.strictEqual(result.hostname.length, 64);
-      assert.strictEqual(result.log_line.length, 1000); // log_line has higher limit
+      // logEvent() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that log was stored with truncated properties
+      const logList = JSON.parse(
+        global.localStorage.getItem('dc.log_list') || '[]'
+      );
+      const lastLog = logList[logList.length - 1];
+      assert.strictEqual(lastLog.hostname.length, 64);
+      assert.strictEqual(lastLog.log_line.length, 1000); // log_line has higher limit
     });
   });
 
@@ -350,7 +419,16 @@ describe('DataCortex Library Tests', () => {
 
       // Add new event to test index continuation
       const result = DataCortex.event({ kingdom: 'new' });
-      assert.strictEqual(result.event_index, 6);
+
+      // event() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored with correct index
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.event_index, 6);
     });
   });
 
@@ -370,10 +448,18 @@ describe('DataCortex Library Tests', () => {
         float1: 0,
       });
 
-      assert.strictEqual(result.kingdom, undefined);
-      assert.strictEqual(result.phylum, undefined);
-      assert.strictEqual(result.class, undefined);
-      assert.strictEqual(result.float1, 0);
+      // event() now returns void
+      assert.strictEqual(result, undefined);
+
+      // Check that event was stored with proper handling of empty values
+      const eventList = JSON.parse(
+        global.localStorage.getItem('dc.event_list') || '[]'
+      );
+      const lastEvent = eventList[eventList.length - 1];
+      assert.strictEqual(lastEvent.kingdom, undefined);
+      assert.strictEqual(lastEvent.phylum, undefined);
+      assert.strictEqual(lastEvent.class, undefined);
+      assert.strictEqual(lastEvent.float1, 0);
     });
 
     test('should handle crypto fallback', () => {

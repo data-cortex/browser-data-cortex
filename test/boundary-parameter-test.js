@@ -115,8 +115,14 @@ const minRegularEvent = DataCortex.event({
   network: 'test-net', // Required by server
   channel: 'test-ch', // Required by server
 });
+
+// event() now returns void, check localStorage instead
+const eventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastEvent = eventList[eventList.length - 1];
 console.log(
-  `   ✅ Minimum regular event created with ${Object.keys(minRegularEvent).length} properties`
+  `   ✅ Minimum regular event created with ${Object.keys(lastEvent).length} properties`
 );
 
 // MAXIMUM parameters for regular event (all possible fields)
@@ -155,8 +161,14 @@ const maxRegularEvent = DataCortex.event({
     'recipient5',
   ],
 });
+
+// event() now returns void, check localStorage instead
+const maxEventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastMaxEvent = maxEventList[maxEventList.length - 1];
 console.log(
-  `   ✅ Maximum regular event created with ${Object.keys(maxRegularEvent).length} properties`
+  `   ✅ Maximum regular event created with ${Object.keys(lastMaxEvent).length} properties`
 );
 
 // ============================================================================
@@ -181,8 +193,14 @@ const minEconomyEvent = DataCortex.economyEvent({
   network: 'test-net', // Required by server
   channel: 'test-ch', // Required by server
 });
+
+// economyEvent() now returns void, check localStorage instead
+const minEconEventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastMinEconEvent = minEconEventList[minEconEventList.length - 1];
 console.log(
-  `   ✅ Minimum economy event created with ${Object.keys(minEconomyEvent).length} properties`
+  `   ✅ Minimum economy event created with ${Object.keys(lastMinEconEvent).length} properties`
 );
 
 // MAXIMUM parameters for economy event (all possible fields)
@@ -217,8 +235,14 @@ const maxEconomyEvent = DataCortex.economyEvent({
   // OTHER_PROP_LIST
   to_list: ['economy-recipient1', 'economy-recipient2', 'economy-recipient3'],
 });
+
+// economyEvent() now returns void, check localStorage instead
+const maxEconEventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastMaxEconEvent = maxEconEventList[maxEconEventList.length - 1];
 console.log(
-  `   ✅ Maximum economy event created with ${Object.keys(maxEconomyEvent).length} properties`
+  `   ✅ Maximum economy event created with ${Object.keys(lastMaxEconEvent).length} properties`
 );
 
 // ============================================================================
@@ -243,8 +267,14 @@ const minMessageEvent = DataCortex.messageSendEvent({
   network: 'test-net', // Required by server
   channel: 'test-ch', // Required by server
 });
+
+// messageSendEvent() now returns void, check localStorage instead
+const minMsgEventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastMinMsgEvent = minMsgEventList[minMsgEventList.length - 1];
 console.log(
-  `   ✅ Minimum message event created with ${Object.keys(minMessageEvent).length} properties`
+  `   ✅ Minimum message event created with ${Object.keys(lastMinMsgEvent).length} properties`
 );
 
 // MAXIMUM parameters for message send event (all possible fields)
@@ -284,8 +314,14 @@ const maxMessageEvent = DataCortex.messageSendEvent({
   float4: 7777777777.777777,
   spend_amount: 77777.77,
 });
+
+// messageSendEvent() now returns void, check localStorage instead
+const maxMsgEventList = JSON.parse(
+  global.localStorage.getItem('dc.event_list') || '[]'
+);
+const lastMaxMsgEvent = maxMsgEventList[maxMsgEventList.length - 1];
 console.log(
-  `   ✅ Maximum message event created with ${Object.keys(maxMessageEvent).length} properties`
+  `   ✅ Maximum message event created with ${Object.keys(lastMaxMsgEvent).length} properties`
 );
 
 // ============================================================================
@@ -300,8 +336,14 @@ console.log('   🔹 Testing MINIMUM parameters for log event...');
 const minLogEvent = DataCortex.logEvent({
   log_line: 'Minimum log message for boundary testing',
 });
+
+// logEvent() now returns void, check localStorage instead
+const minLogEventList = JSON.parse(
+  global.localStorage.getItem('dc.log_list') || '[]'
+);
+const lastMinLogEvent = minLogEventList[minLogEventList.length - 1];
 console.log(
-  `   ✅ Minimum log event created with ${Object.keys(minLogEvent).length} properties`
+  `   ✅ Minimum log event created with ${Object.keys(lastMinLogEvent).length} properties`
 );
 
 // MAXIMUM parameters for log event (all possible fields)
@@ -325,8 +367,14 @@ const maxLogEvent = DataCortex.logEvent({
   // LOG_OTHER_PROP_LIST
   event_datetime: new Date().toISOString(),
 });
+
+// logEvent() now returns void, check localStorage instead
+const maxLogEventList = JSON.parse(
+  global.localStorage.getItem('dc.log_list') || '[]'
+);
+const lastMaxLogEvent = maxLogEventList[maxLogEventList.length - 1];
 console.log(
-  `   ✅ Maximum log event created with ${Object.keys(maxLogEvent).length} properties`
+  `   ✅ Maximum log event created with ${Object.keys(lastMaxLogEvent).length} properties`
 );
 
 // ============================================================================
