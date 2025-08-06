@@ -11,7 +11,8 @@ global.clearTimeout = global.window.clearTimeout = (id) => {
   // Do nothing
 };
 
-import DataCortex from '../src/index.js';
+import '../dist/browser-data-cortex.min.js';
+const DataCortex = global.DataCortex;
 
 console.log('=== DEBUG: Testing Real Server Requests ===');
 

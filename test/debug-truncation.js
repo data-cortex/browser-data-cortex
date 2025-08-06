@@ -1,5 +1,6 @@
 import './setup.js';
-import DataCortex from '../src/index.js';
+import '../dist/browser-data-cortex.min.js';
+const DataCortex = global.DataCortex;
 
 DataCortex.init({
   api_key: 'test-key',

@@ -1,3 +1,96 @@
+// Type definitions
+export interface InitOptions {
+  api_key: string;
+  org_name: string;
+  app_ver?: string;
+  base_url?: string;
+  device_tag?: string;
+  add_error_handler?: boolean;
+  errorLog?: (...args: any[]) => void;
+}
+
+export interface EventProps {
+  kingdom?: string;
+  phylum?: string;
+  class?: string;
+  order?: string;
+  family?: string;
+  genus?: string;
+  species?: string;
+  float1?: number;
+  float2?: number;
+  float3?: number;
+  float4?: number;
+  network?: string;
+  channel?: string;
+  group_tag?: string;
+  from_tag?: string;
+  type?: string;
+  event_index?: number;
+  event_datetime?: string;
+  to_list?: string[];
+}
+
+export interface EconomyEventProps extends EventProps {
+  spend_currency: string;
+  spend_amount: number;
+  spend_type?: string;
+}
+
+export interface MessageSendEventProps extends EventProps {
+  from_tag: string;
+  to_tag?: string;
+  to_list?: string[];
+}
+
+export interface LogEventProps {
+  log_line?: string;
+  hostname?: string;
+  filename?: string;
+  log_level?: string;
+  device_tag?: string;
+  user_tag?: string;
+  remote_address?: string;
+  event_datetime?: string;
+  repsonse_bytes?: number;
+  response_ms?: number;
+}
+
+interface InternalEvent extends EventProps {
+  event_index: number;
+  event_datetime: string;
+  type: string;
+}
+
+interface DefaultBundle {
+  os?: string;
+  os_ver?: string;
+  browser?: string;
+  browser_ver?: string;
+  device_type?: string;
+  device_family?: string;
+  api_key?: string | false;
+  app_ver?: string;
+  device_tag?: string | false;
+  user_tag?: string | false;
+  events?: any[];
+}
+
+interface RequestOptions {
+  url: string;
+  method: string;
+  body?: any;
+  headers?: Record<string, string>;
+  timeout?: number;
+}
+
+type RequestCallback = (
+  err: string | null,
+  status?: number,
+  body?: string
+) => void;
+
+// Constants
 const EVENT_SEND_COUNT = 10;
 const LOG_SEND_COUNT = 10;
 const DELAY_MS = 2 * 1000;
@@ -36,53 +129,149 @@ const EVENT_PROP_LIST = _union(
 
 const API_BASE_URL = 'https://api.data-cortex.com';
 
-let g_apiBaseUrl = API_BASE_URL;
+// Global variables
+let g_apiBaseUrl: string = API_BASE_URL;
 
-let g_isReady = false;
-let g_isSending = false;
-let g_timeout = false;
+let g_isReady: boolean = false;
+let g_isSending: boolean = false;
+let g_timeout: ReturnType<typeof setTimeout> | false = false;
 
-let g_apiKey = false;
-let g_orgName = false;
-let g_appVer = '0';
+let g_apiKey: string | false = false;
+let g_orgName: string | false = false;
+let g_appVer: string = '0';
 
-let g_userTag = false;
-let g_eventList = [];
-let g_hasSendInstall = false;
-let g_lastDAUTime = 0;
-let g_sessionKey = false;
-let g_deviceTag = false;
-let g_nextIndex = 0;
+let g_userTag: string | false = false;
+let g_eventList: InternalEvent[] = [];
+let g_hasSendInstall: boolean = false;
+let g_lastDAUTime: number = 0;
+let g_sessionKey: string | false = false;
+let g_deviceTag: string | false = false;
+let g_nextIndex: number = 0;
 
-let g_delayCount = 0;
+let g_delayCount: number = 0;
 
-const g_defaultBundle = {};
+const g_defaultBundle: DefaultBundle = {};
 
-let g_logList = [];
+let g_logList: LogEventProps[] = [];
 
-let g_errorLog = function (...args) {
+let g_errorLog: (...args: any[]) => void = function (...args: any[]) {
   console.error('Data Cortex Error:', ...args);
 };
 
-function _errorLog(...args) {
+function _errorLog(...args: any[]): void {
   g_errorLog(...args);
 }
 
-function init(opts) {
+// Utility functions
+function _objectEach<T>(
+  object: Record<string, T>,
+  callback: (value: T, key: string, object: Record<string, T>) => void
+): void {
+  Object.keys(object).forEach((key) => {
+    const value = object[key];
+    callback(value, key, object);
+  });
+}
+
+function _pick<T>(
+  source: Record<string, any>,
+  keys: string[]
+): Record<string, any> {
+  const dest: Record<string, any> = {};
+  keys.forEach((key) => {
+    if (key in source) {
+      dest[key] = source[key];
+    }
+  });
+  return dest;
+}
+
+function _union(...arrays: string[][]): string[] {
+  const dest: string[] = [];
+
+  for (let i = 0; i < arrays.length; i++) {
+    const array = arrays[i];
+    Array.prototype.push.apply(dest, array);
+  }
+
+  return dest;
+}
+// Storage functions
+function _getStoredItem<T>(name: string, def: T | (() => T)): T {
+  let ret: T | undefined;
+  if (name in window.localStorage) {
+    const json = window.localStorage[name];
+    try {
+      ret = JSON.parse(json);
+    } catch {
+      // _errorLog("Failed to parse:",name,"json:",json);
+    }
+  }
+
+  if (ret === undefined) {
+    if (typeof def === 'function') {
+      ret = (def as () => T)();
+    } else {
+      ret = def;
+    }
+  }
+  return ret as T;
+}
+
+function _setStoredItem(name: string, value: any): void {
+  const json = JSON.stringify(value);
+  window.localStorage[name] = json;
+}
+
+function _clearStoredItem(name: string): void {
+  delete window.localStorage[name];
+}
+
+function _loadDeviceTag(): string {
+  let text = _getStoredItem('dc.device_tag', false as string | false);
+  if (!text) {
+    text = _generateRandomString();
+    _setStoredItem('dc.device_tag', text);
+  }
+  return text;
+}
+
+function _generateRandomString(): string {
+  let text = '';
+  const crypto = window.crypto || (window as any).msCrypto;
+  if (crypto && crypto.getRandomValues) {
+    const array = new Uint32Array(8);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < array.length; i++) {
+      text += array[i].toString(36);
+    }
+  } else {
+    while (text.length < 32) {
+      text += Math.random().toString(36).slice(2);
+    }
+  }
+  text = text.slice(0, 32);
+  return text;
+}
+
+// Main functions
+function init(opts: InitOptions): void {
   g_apiBaseUrl =
-    opts.base_url || _getStoredItem('dc.base_url', false) || API_BASE_URL;
+    opts.base_url ||
+    _getStoredItem('dc.base_url', false as string | false) ||
+    API_BASE_URL;
 
   g_apiKey = opts.api_key;
   g_orgName = opts.org_name;
   g_appVer = opts.app_ver || '0';
-  g_userTag = _getStoredItem('dc.user_tag', false);
+  g_userTag = _getStoredItem('dc.user_tag', false as string | false);
 
   // Set custom error logging function if provided
   if (opts.errorLog && typeof opts.errorLog === 'function') {
     g_errorLog = opts.errorLog;
   }
 
-  g_eventList = _getStoredItem('dc.event_list', []);
+  g_eventList = _getStoredItem('dc.event_list', [] as InternalEvent[]);
   g_nextIndex = _getStoredItem('dc.next_index', 0);
   g_eventList.forEach((e) => {
     if (e.event_index >= g_nextIndex) {
@@ -90,7 +279,7 @@ function init(opts) {
     }
   });
 
-  g_logList = _getStoredItem('dc.log_list', []);
+  g_logList = _getStoredItem('dc.log_list', [] as LogEventProps[]);
 
   g_lastDAUTime = _getStoredItem('dc.last_dau_time', 0);
   g_hasSendInstall =
@@ -117,37 +306,39 @@ function init(opts) {
     window.addEventListener('error', _onError);
   }
 }
-function _onError(e) {
+
+function _onError(e: ErrorEvent): void {
   if (e) {
     log('Javascript Error: message:', e.message, 'error:', e.error);
   }
 }
 
-function isReady() {
+function isReady(): boolean {
   return g_isReady;
 }
-function getDeviceTag() {
+
+function getDeviceTag(): string | false {
   return g_deviceTag;
 }
 
-function addUserTag(userTag) {
-  g_userTag = userTag && String(userTag);
+function addUserTag(userTag: string | null | undefined): void {
+  g_userTag = userTag ? String(userTag) : false;
   if (g_userTag) {
     _setStoredItem('dc.user_tag', g_userTag);
   } else {
     _clearStoredItem('dc.user_tag');
   }
 }
-
-function event(props) {
+// Event functions
+function event(props: EventProps): InternalEvent {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
-  props.type = 'event';
-  return _internalEventAdd(props);
+  (props as any).type = 'event';
+  return _internalEventAdd(props as any);
 }
 
-function economyEvent(props) {
+function economyEvent(props: EconomyEventProps): InternalEvent {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -158,10 +349,11 @@ function economyEvent(props) {
     throw new Error('spend_amount is required');
   }
 
-  props.type = 'economy';
-  return _internalEventAdd(props);
+  (props as any).type = 'economy';
+  return _internalEventAdd(props as any);
 }
-function messageSendEvent(props) {
+
+function messageSendEvent(props: MessageSendEventProps): InternalEvent {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -184,48 +376,11 @@ function messageSendEvent(props) {
     throw new Error('must have at least 1 in to_list or a to_tag');
   }
 
-  props.type = 'message_send';
-  return _internalEventAdd(props);
+  (props as any).type = 'message_send';
+  return _internalEventAdd(props as any);
 }
 
-function _getStoredItem(name, def) {
-  let ret;
-  if (name in window.localStorage) {
-    const json = window.localStorage[name];
-    try {
-      ret = JSON.parse(json);
-    } catch {
-      // _errorLog("Failed to parse:",name,"json:",json);
-    }
-  }
-
-  if (ret === undefined) {
-    if (typeof def === 'function') {
-      ret = def();
-    } else {
-      ret = def;
-    }
-  }
-  return ret;
-}
-function _setStoredItem(name, value) {
-  const json = JSON.stringify(value);
-  window.localStorage[name] = json;
-}
-function _clearStoredItem(name) {
-  delete window.localStorage[name];
-}
-
-function _loadDeviceTag() {
-  let text = _getStoredItem('dc.device_tag', false);
-  if (!text) {
-    text = _generateRandomString();
-    _setStoredItem('dc.device_tag', text);
-  }
-  return text;
-}
-
-function _maybeSendInstall() {
+function _maybeSendInstall(): void {
   if (!g_hasSendInstall) {
     g_hasSendInstall = true;
     _setStoredItem('dc.has_sent_install', true);
@@ -239,37 +394,20 @@ function _maybeSendInstall() {
       family: 'organic',
       genus: 'organic',
       species: 'organic',
-    });
+    } as any);
   }
-}
-function _generateRandomString() {
-  let text = '';
-  const crypto = window.crypto || window.msCrypto;
-  if (crypto && crypto.getRandomValues) {
-    const array = new Uint32Array(8);
-    crypto.getRandomValues(array);
-    for (let i = 0; i < array.length; i++) {
-      text += array[i].toString(36);
-    }
-  } else {
-    while (text.length < 32) {
-      text += Math.random().toString(36).slice(2);
-    }
-  }
-  text = text.slice(0, 32);
-  return text;
 }
 
-function _maybeAddDau() {
+function _maybeAddDau(): void {
   const delta = Date.now() - g_lastDAUTime;
   if (delta > 24 * 60 * 60 * 1000) {
-    _internalEventAdd({ type: 'dau' });
+    _internalEventAdd({ type: 'dau' } as any);
     g_lastDAUTime = Date.now();
     _setStoredItem('dc.last_dau_time', g_lastDAUTime);
   }
 }
 
-function _internalEventAdd(props) {
+function _internalEventAdd(props: any): InternalEvent {
   props.event_index = g_nextIndex++;
   if (!props.event_datetime) {
     props.event_datetime = new Date().toISOString();
@@ -314,26 +452,26 @@ function _internalEventAdd(props) {
     }
   });
 
-  const e = _pick(props, EVENT_PROP_LIST);
+  const e = _pick(props, EVENT_PROP_LIST) as InternalEvent;
   g_eventList.push(e);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
   return e;
 }
 
-function _sendEventsLater(delay) {
+function _sendEventsLater(delay?: number): void {
   if (!g_timeout && g_isReady && !g_isSending) {
     g_timeout = window.setTimeout(() => {
       g_timeout = false;
       _sendEvents();
-    }, delay || 0);
+    }, delay || 0) as any;
   }
 }
-function _sendEvents() {
+function _sendEvents(): void {
   if (g_isReady && !g_isSending && g_eventList.length > 0) {
     g_isSending = true;
 
-    const bundle = Object.assign({}, g_defaultBundle, {
+    const bundle: any = Object.assign({}, g_defaultBundle, {
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
@@ -342,12 +480,12 @@ function _sendEvents() {
       bundle.user_tag = g_userTag;
     }
     bundle.events = [];
-    let first_event = false;
+    let first_event: InternalEvent | false = false;
     g_eventList.some((e) => {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
-      } else if (first_event.session_key === e.session_key) {
+      } else if ((first_event as any).session_key === (e as any).session_key) {
         bundle.events.push(e);
       }
       return bundle.events.length < EVENT_SEND_COUNT;
@@ -355,7 +493,7 @@ function _sendEvents() {
 
     const current_time = encodeURIComponent(new Date().toISOString());
     const url = `${g_apiBaseUrl}/${g_orgName}/1/track?current_time=${current_time}`;
-    const opts = {
+    const opts: RequestOptions = {
       url,
       method: 'POST',
       body: bundle,
@@ -392,9 +530,9 @@ function _sendEvents() {
   }
 }
 
-function _request(args, done) {
+function _request(args: RequestOptions, done: RequestCallback): void {
   let done_once = false;
-  function request_done(...args) {
+  function request_done(...args: Parameters<RequestCallback>): void {
     if (!done_once) {
       done_once = true;
       done(...args);
@@ -403,10 +541,10 @@ function _request(args, done) {
 
   const method = args.method;
 
-  const default_headers = {
+  const default_headers: Record<string, string> = {
     Accept: 'application/json',
   };
-  let body = null;
+  let body: string | FormData | null = null;
   if (args.body instanceof FormData) {
     body = args.body;
   } else if (args.body) {
@@ -418,7 +556,7 @@ function _request(args, done) {
   const url = args.url;
 
   // Build fetch options
-  const fetchOptions = {
+  const fetchOptions: RequestInit = {
     method,
     headers,
   };
@@ -428,7 +566,7 @@ function _request(args, done) {
   }
 
   // Add timeout support using AbortController
-  let timeoutId;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   if (args.timeout) {
     const controller = new AbortController();
     fetchOptions.signal = controller.signal;
@@ -453,7 +591,7 @@ function _request(args, done) {
         // If we can't read the response body, continue with empty string
       }
 
-      let err = null;
+      let err: string | null = null;
       if (status < 200 || status > 599) {
         err = 'wierd_status';
       } else if (status >= 300) {
@@ -475,7 +613,7 @@ function _request(args, done) {
     });
 }
 
-function _removeEvents(event_list) {
+function _removeEvents(event_list: InternalEvent[]): void {
   g_eventList = g_eventList.filter((e) => {
     return !event_list.some((e2) => {
       return e.event_index === e2.event_index;
@@ -484,9 +622,8 @@ function _removeEvents(event_list) {
   _setStoredItem('dc.event_list', g_eventList);
   _setStoredItem('dc.next_index', g_nextIndex);
 }
-
-function _setupDefaultBundle() {
-  function regexGet(haystack, regex, def) {
+function _setupDefaultBundle(): void {
+  function regexGet(haystack: string, regex: RegExp, def: string): string {
     let ret = def;
     const matches = haystack.match(regex);
     if (matches && matches.length > 1) {
@@ -584,7 +721,7 @@ function _setupDefaultBundle() {
   g_defaultBundle.device_family = device_type;
 }
 
-function log(...args) {
+function log(...args: any[]): LogEventProps {
   if (!args || args.length === 0) {
     throw new Error('log must have arguments');
   }
@@ -607,12 +744,12 @@ function log(...args) {
       log_line += arg;
     }
   }
-  logEvent({ log_line });
+  return logEvent({ log_line });
 }
 
 const LOG_NUMBER_PROP_LIST = ['repsonse_bytes', 'response_ms'];
 
-const LOG_STRING_PROP_MAP = {
+const LOG_STRING_PROP_MAP: Record<string, number> = {
   hostname: 64,
   filename: 256,
   log_level: 64,
@@ -629,8 +766,7 @@ const LOG_PROP_LIST = _union(
   Object.keys(LOG_STRING_PROP_MAP),
   LOG_OTHER_PROP_LIST
 );
-
-function logEvent(props) {
+function logEvent(props: LogEventProps): LogEventProps {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object.');
   }
@@ -641,42 +777,42 @@ function logEvent(props) {
 
   _objectEach(LOG_STRING_PROP_MAP, (max_len, p) => {
     if (p in props) {
-      const val = props[p];
+      const val = (props as any)[p];
       const s = val && val.toString();
       if (s) {
-        props[p] = s.slice(0, max_len);
+        (props as any)[p] = s.slice(0, max_len);
       } else {
-        delete props[p];
+        delete (props as any)[p];
       }
     }
   });
   LOG_NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
-      let val = props[p];
+      let val = (props as any)[p];
       if (typeof val !== 'number') {
         val = parseFloat(val);
       }
       if (isFinite(val)) {
-        props[p] = val;
+        (props as any)[p] = val;
       } else {
-        delete props[p];
+        delete (props as any)[p];
       }
     }
   });
 
-  const e = _pick(props, LOG_PROP_LIST);
+  const e = _pick(props, LOG_PROP_LIST) as LogEventProps;
   g_logList.push(e);
   _setStoredItem('dc.log_list', g_logList);
   _sendLogsLater();
   return e;
 }
 
-function _removeLogs(events) {
+function _removeLogs(events: LogEventProps[]): void {
   g_logList.splice(0, events.length);
   _setStoredItem('dc.log_list', g_logList);
 }
 
-function _isError(e) {
+function _isError(e: any): e is Error {
   return (
     e &&
     e.stack &&
@@ -686,23 +822,24 @@ function _isError(e) {
   );
 }
 
-let g_logTimeout = false;
-let g_isLogSending = false;
-let g_logDelayCount = 0;
+let g_logTimeout: ReturnType<typeof setTimeout> | false = false;
+let g_isLogSending: boolean = false;
+let g_logDelayCount: number = 0;
 
-function _sendLogsLater(delay = 0) {
+function _sendLogsLater(delay: number = 0): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = window.setTimeout(() => {
       g_logTimeout = false;
       _sendLogs();
-    }, delay);
+    }, delay) as any;
   }
 }
-function _sendLogs() {
+
+function _sendLogs(): void {
   if (g_isReady && !g_isLogSending && g_logList.length > 0) {
     g_isLogSending = true;
 
-    const bundle = Object.assign({}, g_defaultBundle, {
+    const bundle: any = Object.assign({}, g_defaultBundle, {
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
@@ -714,7 +851,7 @@ function _sendLogs() {
 
     const url = `${g_apiBaseUrl}/${g_orgName}/1/app_log`;
 
-    const opts = {
+    const opts: RequestOptions = {
       url,
       method: 'POST',
       body: bundle,
@@ -751,7 +888,7 @@ function _sendLogs() {
   }
 }
 
-function flush() {
+function flush(): void {
   if (!g_isReady) {
     _errorLog('DataCortex not ready. Call init() first.');
     return;
@@ -778,34 +915,6 @@ function flush() {
   }
 }
 
-function _objectEach(object, callback) {
-  Object.keys(object).forEach((key) => {
-    const value = object[key];
-    callback(value, key, object);
-  });
-}
-
-function _pick(source, keys) {
-  const dest = {};
-  keys.forEach((key) => {
-    if (key in source) {
-      dest[key] = source[key];
-    }
-  });
-  return dest;
-}
-
-function _union(...arrays) {
-  const dest = [];
-
-  for (let i = 0; i < arrays.length; i++) {
-    const array = arrays[i];
-    Array.prototype.push.apply(dest, array);
-  }
-
-  return dest;
-}
-
 const DataCortex = {
   init,
   isReady,
@@ -821,7 +930,7 @@ const DataCortex = {
 
 // Only set window.DataCortex if window is available (browser environment)
 if (typeof window !== 'undefined') {
-  window.DataCortex = DataCortex;
+  (window as any).DataCortex = DataCortex;
 }
 
 export default DataCortex;

@@ -5,7 +5,8 @@ import { test, describe, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert';
 
 // Import the module after setting up globals
-import DataCortex from '../src/index.js';
+import '../dist/browser-data-cortex.min.js';
+const DataCortex = global.DataCortex;
 
 describe('DataCortex Library Tests', () => {
   let mockXHR;

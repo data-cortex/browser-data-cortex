@@ -3,21 +3,20 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
 
 export default {
-  input: 'src/index.js',
+  input: 'src/index.ts',
   output: {
     name: 'DataCortex',
     file: pkg.browser,
     format: 'umd',
     sourcemap: true,
-    globals: {
-      // Define any external dependencies here if needed
-    },
+    globals: {},
   },
   plugins: [
     resolve({
@@ -25,9 +24,16 @@ export default {
       preferBuiltins: false,
     }),
     commonjs(),
+    typescript({
+      tsconfig: './tsconfig.json',
+      declaration: true,
+      declarationDir: './dist',
+      rootDir: './src',
+    }),
     babel({
       babelHelpers: 'bundled',
       exclude: 'node_modules/**',
+      extensions: ['.js', '.ts'],
       presets: [
         [
           '@babel/preset-env',
@@ -45,7 +51,7 @@ export default {
     }),
     terser({
       compress: {
-        drop_console: false, // Keep console logs for debugging
+        drop_console: false,
         drop_debugger: true,
       },
       format: {
@@ -53,5 +59,5 @@ export default {
       },
     }),
   ],
-  external: [], // Add any external dependencies here
+  external: [],
 };

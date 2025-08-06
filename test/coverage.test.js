@@ -150,7 +150,8 @@ global.clearInterval = global.window.clearInterval = (id) => {
 };
 
 // Now import the DataCortex module
-import DataCortex from '../src/index.js';
+import '../dist/browser-data-cortex.min.js';
+const DataCortex = global.DataCortex;
 
 describe('DataCortex Library Coverage Tests', () => {
   beforeEach(() => {

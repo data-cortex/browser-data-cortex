@@ -61,7 +61,8 @@ try {
 }
 
 // Import DataCortex after setting up environment
-import DataCortex from '../src/index.js';
+import '../dist/browser-data-cortex.min.js';
+const DataCortex = global.DataCortex;
 
 console.log('🎯 COMPREHENSIVE REAL SERVER TEST: All API Endpoints');
 console.log('====================================================');
