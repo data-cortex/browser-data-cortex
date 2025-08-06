@@ -20,7 +20,7 @@ export interface InitOptions {
   base_url?: string;
   device_tag?: string;
   add_error_handler?: boolean;
-  errorLog?: (...args: any[]) => void;
+  errorLog?: (...args: unknown[]) => void;
 }
 export interface EventProps {
   kingdom?: string;
@@ -61,6 +61,7 @@ export interface LogEventProps {
   event_datetime?: string;
   repsonse_bytes?: number;
   response_ms?: number;
+  [key: string]: unknown;
 }
 interface InternalEvent extends EventProps {
   event_index: number;
@@ -74,6 +75,7 @@ interface InternalEvent extends EventProps {
   from_tag: string;
   to_tag?: string;
   to_list?: string[];
+  [key: string]: unknown;
 }
 
 interface DefaultBundle {
@@ -87,13 +89,14 @@ interface DefaultBundle {
   app_ver?: string;
   device_tag?: string | false;
   user_tag?: string | false;
-  events?: any[];
+  events?: InternalEvent[];
+  [key: string]: unknown;
 }
 
 interface RequestOptions {
   url: string;
   method: string;
-  body?: any;
+  body?: Record<string, unknown> | FormData;
   headers?: Record<string, string>;
   timeout?: number;
 }
@@ -137,11 +140,11 @@ const g_defaultBundle: DefaultBundle = {};
 
 let g_logList: LogEventProps[] = [];
 
-let g_errorLog: (...args: any[]) => void = function (...args: any[]) {
+let g_errorLog: (...args: unknown[]) => void = function (...args: unknown[]) {
   console.error('Data Cortex Error:', ...args);
 };
 
-function _errorLog(...args: any[]): void {
+function _errorLog(...args: unknown[]): void {
   g_errorLog(...args);
 }
 
@@ -156,11 +159,11 @@ function _objectEach<T>(
   });
 }
 
-function _pick<T>(
-  source: Record<string, any>,
+function _pick(
+  source: Record<string, unknown>,
   keys: string[]
-): Record<string, any> {
-  const dest: Record<string, any> = {};
+): Record<string, unknown> {
+  const dest: Record<string, unknown> = {};
   keys.forEach((key) => {
     if (key in source) {
       dest[key] = source[key];
@@ -201,7 +204,7 @@ function _getStoredItem<T>(name: string, def: T | (() => T)): T {
   return ret;
 }
 
-function _setStoredItem(name: string, value: any): void {
+function _setStoredItem(name: string, value: unknown): void {
   const json = JSON.stringify(value);
   window.localStorage[name] = json;
 }
@@ -221,8 +224,8 @@ function _loadDeviceTag(): string {
 
 function _generateRandomString(): string {
   let text = '';
-  const crypto = window.crypto || (window as any).msCrypto;
-  if (crypto && crypto.getRandomValues) {
+  const crypto = window.crypto ?? (window as unknown as Record<string, unknown>).msCrypto;
+  if (crypto?.getRandomValues) {
     const array = new Uint32Array(8);
     crypto.getRandomValues(array);
     for (let i = 0; i < array.length; i++) {
@@ -238,14 +241,14 @@ function _generateRandomString(): string {
 }
 
 export function init(opts: InitOptions): void {
-  g_apiBaseUrl =
-    opts.base_url ||
-    _getStoredItem('dc.base_url', false as string | false) ||
+  const baseUrl = opts.base_url ??
+    _getStoredItem('dc.base_url', false as string | false) ??
     API_BASE_URL;
+  g_apiBaseUrl = typeof baseUrl === 'string' ? baseUrl : API_BASE_URL;
 
   g_apiKey = opts.api_key;
   g_orgName = opts.org_name;
-  g_appVer = opts.app_ver || '0';
+  g_appVer = opts.app_ver ?? '0';
   g_userTag = _getStoredItem('dc.user_tag', false as string | false);
 
   // Set custom error logging function if provided
@@ -272,9 +275,7 @@ export function init(opts: InitOptions): void {
   } else {
     g_deviceTag = _loadDeviceTag();
   }
-  if (!g_sessionKey) {
-    g_sessionKey = _generateRandomString();
-  }
+  g_sessionKey ??= _generateRandomString();
 
   _maybeSendInstall();
   _maybeAddDau();
@@ -309,14 +310,14 @@ export function addUserTag(userTag: string | null | undefined): void {
     _clearStoredItem('dc.user_tag');
   }
 }
-export function event(props: EventProps) {
+export function event(props: EventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
-  (props as any).type = 'event';
-  _internalEventAdd(props as any);
+  (props as InternalEvent).type = 'event';
+  _internalEventAdd(props as InternalEvent);
 }
-export function economyEvent(props: EconomyEventProps) {
+export function economyEvent(props: EconomyEventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -327,10 +328,10 @@ export function economyEvent(props: EconomyEventProps) {
     throw new Error('spend_amount is required');
   }
 
-  (props as any).type = 'economy';
-  _internalEventAdd(props as any);
+  (props as InternalEvent).type = 'economy';
+  _internalEventAdd(props as InternalEvent);
 }
-export function messageSendEvent(props: MessageSendEventProps) {
+export function messageSendEvent(props: MessageSendEventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -343,9 +344,7 @@ export function messageSendEvent(props: MessageSendEventProps) {
   if (props.to_list && !Array.isArray(props.to_list)) {
     throw new Error('to_list must be an array.');
   }
-  if (!props.to_list) {
-    props.to_list = [];
-  }
+  props.to_list ??= [];
   if (props.to_tag) {
     props.to_list.push(props.to_tag);
   }
@@ -353,8 +352,8 @@ export function messageSendEvent(props: MessageSendEventProps) {
     throw new Error('must have at least 1 in to_list or a to_tag');
   }
 
-  (props as any).type = 'message_send';
-  _internalEventAdd(props as any);
+  (props as InternalEvent).type = 'message_send';
+  _internalEventAdd(props as InternalEvent);
 }
 function _maybeSendInstall(): void {
   if (!g_hasSendInstall) {
@@ -370,18 +369,18 @@ function _maybeSendInstall(): void {
       family: 'organic',
       genus: 'organic',
       species: 'organic',
-    } as any);
+    } as InternalEvent);
   }
 }
 function _maybeAddDau(): void {
   const delta = Date.now() - g_lastDAUTime;
   if (delta > 24 * 60 * 60 * 1000) {
-    _internalEventAdd({ type: 'dau' } as any);
+    _internalEventAdd({ type: 'dau' } as InternalEvent);
     g_lastDAUTime = Date.now();
     _setStoredItem('dc.last_dau_time', g_lastDAUTime);
   }
 }
-function _internalEventAdd(props: any) {
+function _internalEventAdd(props: InternalEvent): void {
   props.event_index = g_nextIndex++;
   if (!props.event_datetime) {
     props.event_datetime = new Date().toISOString();
@@ -392,41 +391,44 @@ function _internalEventAdd(props: any) {
   }
   STRING_PROP_LIST.forEach((p) => {
     if (p in props) {
-      const val = props[p];
-      const s = val && String(val);
+      const val = (props as unknown as Record<string, unknown>)[p];
+      const s = val ? String(val) : '';
       if (s) {
-        props[p] = s.slice(0, 32);
+        (props as unknown as Record<string, unknown>)[p] = s.slice(0, 32);
       } else {
-        delete props[p];
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
   });
   LONG_STRING_PROP_LIST.forEach((p) => {
     if (p in props) {
-      const val = props[p];
-      const s = val && String(val);
+      const val = (props as unknown as Record<string, unknown>)[p];
+      const s = val ? String(val) : '';
       if (s) {
-        props[p] = s.slice(0, 64);
+        (props as unknown as Record<string, unknown>)[p] = s.slice(0, 64);
       } else {
-        delete props[p];
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
   });
   NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
-      let val = props[p];
+      let val = (props as unknown as Record<string, unknown>)[p];
       if (typeof val !== 'number') {
-        val = parseFloat(val);
+        val = parseFloat(val as string);
       }
-      if (isFinite(val)) {
-        props[p] = val;
+      if (isFinite(val as number)) {
+        (props as unknown as Record<string, unknown>)[p] = val;
       } else {
-        delete props[p];
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
   });
 
-  const e = _pick(props, EVENT_PROP_LIST) as InternalEvent;
+  const e = _pick(
+    props as unknown as Record<string, unknown>,
+    EVENT_PROP_LIST
+  ) as unknown as InternalEvent;
   g_eventList.push(e);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
@@ -436,18 +438,18 @@ function _sendEventsLater(delay?: number): void {
     g_timeout = window.setTimeout(() => {
       g_timeout = null;
       _sendEvents();
-    }, delay || 0) as any;
+    }, delay ?? 0) as unknown as ReturnType<typeof setTimeout>;
   }
 }
 function _sendEvents(): void {
   if (g_isReady && !g_isSending && g_eventList.length > 0) {
     g_isSending = true;
 
-    const bundle: any = Object.assign({}, g_defaultBundle, {
+    const bundle = Object.assign({}, g_defaultBundle, {
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
-    });
+    }) as DefaultBundle & { events: InternalEvent[] };
     if (g_userTag) {
       bundle.user_tag = g_userTag;
     }
@@ -457,7 +459,10 @@ function _sendEvents(): void {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
-      } else if ((first_event as any).session_key === (e as any).session_key) {
+      } else if (
+        (first_event as unknown as Record<string, unknown>).session_key ===
+        (e as unknown as Record<string, unknown>).session_key
+      ) {
         bundle.events.push(e);
       }
       return bundle.events.length < EVENT_SEND_COUNT;
@@ -690,7 +695,7 @@ function _setupDefaultBundle(): void {
   g_defaultBundle.device_type = device_type;
   g_defaultBundle.device_family = device_type;
 }
-export function log(...args: any[]) {
+export function log(...args: unknown[]): void {
   if (!args || args.length === 0) {
     throw new Error('log must have arguments');
   }
@@ -721,41 +726,42 @@ const LOG_PROP_LIST = _union(
   Object.keys(LOG_STRING_PROP_MAP),
   LOG_OTHER_PROP_LIST
 );
-export function logEvent(props: LogEventProps) {
+export function logEvent(props: LogEventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object.');
   }
 
-  if (!props.event_datetime) {
-    props.event_datetime = new Date().toISOString();
-  }
+  props.event_datetime ??= new Date().toISOString();
 
   _objectEach(LOG_STRING_PROP_MAP, (max_len, p) => {
     if (p in props) {
-      const val = (props as any)[p];
+      const val = (props as unknown as Record<string, unknown>)[p];
       const s = val?.toString();
       if (s) {
-        (props as any)[p] = s.slice(0, max_len);
+        (props as unknown as Record<string, unknown>)[p] = s.slice(0, max_len);
       } else {
-        delete (props as any)[p];
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
   });
   LOG_NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
-      let val = (props as any)[p];
+      let val = (props as unknown as Record<string, unknown>)[p];
       if (typeof val !== 'number') {
-        val = parseFloat(val);
+        val = parseFloat(val as string);
       }
-      if (isFinite(val)) {
-        (props as any)[p] = val;
+      if (isFinite(val as number)) {
+        (props as unknown as Record<string, unknown>)[p] = val;
       } else {
-        delete (props as any)[p];
+        delete (props as unknown as Record<string, unknown>)[p];
       }
     }
   });
 
-  const e = _pick(props, LOG_PROP_LIST) as LogEventProps;
+  const e = _pick(
+    props as unknown as Record<string, unknown>,
+    LOG_PROP_LIST
+  ) as unknown as LogEventProps;
   g_logList.push(e);
   _setStoredItem('dc.log_list', g_logList);
   _sendLogsLater();
@@ -766,12 +772,14 @@ function _removeLogs(events: LogEventProps[]): void {
   _setStoredItem('dc.log_list', g_logList);
 }
 
-function _isError(e: any): e is Error {
+function _isError(e: unknown): e is Error {
   return (
-    e?.stack &&
-    e.message &&
-    typeof e.stack === 'string' &&
-    typeof e.message === 'string'
+    typeof e === 'object' &&
+    e !== null &&
+    'stack' in e &&
+    'message' in e &&
+    typeof (e as Error).stack === 'string' &&
+    typeof (e as Error).message === 'string'
   );
 }
 
@@ -784,18 +792,22 @@ function _sendLogsLater(delay: number = 0): void {
     g_logTimeout = window.setTimeout(() => {
       g_logTimeout = null;
       _sendLogs();
-    }, delay) as any;
+    }, delay) as unknown as ReturnType<typeof setTimeout>;
   }
 }
+interface LogBundle extends Omit<DefaultBundle, 'events'> {
+  events: LogEventProps[];
+}
+
 function _sendLogs(): void {
   if (g_isReady && !g_isLogSending && g_logList.length > 0) {
     g_isLogSending = true;
 
-    const bundle: any = Object.assign({}, g_defaultBundle, {
+    const bundle = Object.assign({}, g_defaultBundle, {
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
-    });
+    }) as LogBundle;
     if (g_userTag) {
       bundle.user_tag = g_userTag;
     }
@@ -873,5 +885,5 @@ const DataCortex = {
 };
 export default DataCortex;
 if (typeof window !== 'undefined') {
-  (window as any).DataCortex = DataCortex;
+  (window as unknown as Record<string, unknown>).DataCortex = DataCortex;
 }

@@ -5,7 +5,7 @@ interface InitOptions {
     base_url?: string;
     device_tag?: string;
     add_error_handler?: boolean;
-    errorLog?: (...args: any[]) => void;
+    errorLog?: (...args: unknown[]) => void;
 }
 interface EventProps {
     kingdom?: string;
@@ -46,6 +46,7 @@ interface LogEventProps {
     event_datetime?: string;
     repsonse_bytes?: number;
     response_ms?: number;
+    [key: string]: unknown;
 }
 declare function init(opts: InitOptions): void;
 declare function isReady(): boolean;
@@ -54,7 +55,7 @@ declare function addUserTag(userTag: string | null | undefined): void;
 declare function event(props: EventProps): void;
 declare function economyEvent(props: EconomyEventProps): void;
 declare function messageSendEvent(props: MessageSendEventProps): void;
-declare function log(...args: any[]): void;
+declare function log(...args: unknown[]): void;
 declare function logEvent(props: LogEventProps): void;
 declare function flush(): void;
 declare const DataCortex: {
