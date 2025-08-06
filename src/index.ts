@@ -149,15 +149,6 @@ function _errorLog(...args: unknown[]): void {
 }
 
 // Utility functions
-function _objectEach<T>(
-  object: Record<string, T>,
-  callback: (value: T, key: string, object: Record<string, T>) => void
-): void {
-  Object.keys(object).forEach((key) => {
-    const value = object[key];
-    callback(value, key, object);
-  });
-}
 
 function _pick(
   source: Record<string, unknown>,
@@ -732,8 +723,9 @@ export function logEvent(props: LogEventProps): void {
 
   props.event_datetime ??= new Date().toISOString();
 
-  _objectEach(LOG_STRING_PROP_MAP, (max_len, p) => {
+  for (const p in LOG_STRING_PROP_MAP) {
     if (p in props) {
+      const max_len = LOG_STRING_PROP_MAP[p];
       const val = (props as unknown as Record<string, unknown>)[p];
       const s = val?.toString();
       if (s) {
@@ -742,7 +734,7 @@ export function logEvent(props: LogEventProps): void {
         delete (props as unknown as Record<string, unknown>)[p];
       }
     }
-  });
+  }
   LOG_NUMBER_PROP_LIST.forEach((p) => {
     if (p in props) {
       let val = (props as unknown as Record<string, unknown>)[p];
