@@ -975,6 +975,527 @@ runner.test('should handle flush with logs', () => {
   assert(xhrRequests.length >= 1, 'Flush should trigger XHR request for logs');
 });
 
+// ============================================================================
+// NEGATIVE TEST CASES: Invalid Property Types on Track Events
+// ============================================================================
+
+runner.test('should handle invalid property types gracefully - STRING properties', () => {
+  console.log('🔴 Testing invalid types for STRING properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test STRING_PROP_LIST properties with invalid types
+  const stringProps = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'network', 'channel'];
+  
+  stringProps.forEach(prop => {
+    console.log(`   Testing ${prop} with invalid types...`);
+    
+    // Test with null - should be deleted from event
+    const eventWithNull = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test', 
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: null
+    });
+    assertEqual(eventWithNull[prop], undefined, `${prop} should be undefined when null`);
+    
+    // Test with number - should be converted to string and truncated
+    const eventWithNumber = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test', 
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: 12345
+    });
+    assertEqual(eventWithNumber[prop], '12345', `${prop} should convert number to string`);
+    
+    // Test with boolean - should be converted to string
+    const eventWithBoolean = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test', 
+      network: 'test',
+      channel: 'test',
+      [prop]: true
+    });
+    assertEqual(eventWithBoolean[prop], 'true', `${prop} should convert boolean to string`);
+  });
+  
+  console.log('   ✅ All STRING property type conversions working correctly');
+});
+
+runner.test('should handle invalid property types gracefully - NUMBER properties', () => {
+  console.log('🔴 Testing invalid types for NUMBER properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test NUMBER_PROP_LIST properties with invalid types
+  const numberProps = ['float1', 'float2', 'float3', 'float4'];
+  
+  numberProps.forEach(prop => {
+    console.log(`   Testing ${prop} with invalid types...`);
+    
+    // Test with null - should be deleted from event
+    const eventWithNull = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: null
+    });
+    assertEqual(eventWithNull[prop], undefined, `${prop} should be undefined when null`);
+    
+    // Test with string number - should be parsed to number
+    const eventWithStringNumber = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: '123.45'
+    });
+    assertEqual(eventWithStringNumber[prop], 123.45, `${prop} should parse string number`);
+    
+    // Test with invalid string - should be deleted from event
+    const eventWithInvalidString = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: 'not-a-number'
+    });
+    assertEqual(eventWithInvalidString[prop], undefined, `${prop} should be undefined when invalid string`);
+    
+    // Test with Infinity - should be deleted from event (not finite)
+    const eventWithInfinity = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: Infinity
+    });
+    assertEqual(eventWithInfinity[prop], undefined, `${prop} should be undefined when Infinity`);
+    
+    // Test with NaN - should be deleted from event (not finite)
+    const eventWithNaN = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: NaN
+    });
+    assertEqual(eventWithNaN[prop], undefined, `${prop} should be undefined when NaN`);
+  });
+  
+  console.log('   ✅ All NUMBER property type conversions working correctly');
+});
+
+runner.test('should handle invalid property types in economyEvent', () => {
+  console.log('🔴 Testing invalid types for economyEvent properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test spend_amount with invalid types - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.economyEvent({
+      spend_currency: 'gold',
+      spend_amount: 'not-a-number', // Invalid type
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'spend_amount is required', 'Should throw error for invalid spend_amount type');
+  }
+  assert(errorThrown, 'Should throw error for invalid spend_amount');
+  
+  console.log('   ✅ economyEvent property type validation working correctly');
+});
+
+runner.test('should handle invalid property types in messageSendEvent', () => {
+  console.log('🔴 Testing invalid types for messageSendEvent properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test to_list with non-array - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.messageSendEvent({
+      from_tag: 'sender',
+      to_list: 'not-an-array', // Invalid type
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'to_list must be an array.', 'Should throw error for non-array to_list');
+  }
+  assert(errorThrown, 'Should throw error for non-array to_list');
+  
+  console.log('   ✅ messageSendEvent property type validation working correctly');
+});
+
+runner.test('should handle completely invalid event objects', () => {
+  console.log('🔴 Testing completely invalid event objects...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test with null props - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.event(null);
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for null props');
+  }
+  assert(errorThrown, 'Should throw error for null props');
+  
+  // Test with string props - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.event('not-an-object');
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for string props');
+  }
+  assert(errorThrown, 'Should throw error for string props');
+  
+  console.log('   ✅ Invalid event object validation working correctly');
+});
+
+runner.test('should handle edge cases in property type conversion', () => {
+  console.log('🔴 Testing edge cases in property type conversion...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test with very long strings - should be truncated
+  const veryLongString = 'a'.repeat(100);
+  const eventWithLongString = DataCortex.event({
+    kingdom: veryLongString, // Should be truncated to 32 chars
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+  assertEqual(eventWithLongString.kingdom.length, 32, 'Long string should be truncated to 32 chars');
+  assertEqual(eventWithLongString.kingdom, 'a'.repeat(32), 'Truncated string should match expected');
+  
+  // Test with negative numbers - should be preserved
+  const eventWithNegative = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: -123.45,
+  });
+  assertEqual(eventWithNegative.float1, -123.45, 'Negative numbers should be preserved');
+  
+  // Test with zero - should be preserved
+  const eventWithZero = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: 0,
+  });
+  assertEqual(eventWithZero.float1, 0, 'Zero should be preserved');
+  
+  console.log('   ✅ Edge case property type conversions working correctly');
+});
+
+// ============================================================================
+// BOUNDARY PARAMETER TESTS: Min/Max Parameters for All Event Types
+// ============================================================================
+
+runner.test('should accept minimum required parameters for all event types', () => {
+  console.log('🔹 Testing MINIMUM parameters for all event types...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test minimum regular event
+  const minRegularEvent = DataCortex.event({
+    kingdom: 'min',
+    phylum: 'test',
+    class: 'boundary',
+    order: 'minimal',
+    family: 'params',
+    genus: 'regular',
+    species: 'event',
+    network: 'test-net',
+    channel: 'test-ch',
+  });
+  assert(minRegularEvent.kingdom === 'min', 'Minimum regular event should be created');
+  console.log(`   ✅ Minimum regular event: ${Object.keys(minRegularEvent).length} properties`);
+
+  // Test minimum economy event
+  const minEconomyEvent = DataCortex.economyEvent({
+    spend_currency: 'gold',
+    spend_amount: 1.0,
+    kingdom: 'min',
+    phylum: 'economy',
+    class: 'boundary',
+    order: 'minimal',
+    family: 'params',
+    genus: 'economy',
+    species: 'event',
+    network: 'test-net',
+    channel: 'test-ch',
+  });
+  assert(minEconomyEvent.spend_currency === 'gold', 'Minimum economy event should be created');
+  console.log(`   ✅ Minimum economy event: ${Object.keys(minEconomyEvent).length} properties`);
+
+  // Test minimum message send event
+  const minMessageEvent = DataCortex.messageSendEvent({
+    from_tag: 'sender',
+    to_tag: 'receiver',
+    kingdom: 'min',
+    phylum: 'message',
+    class: 'boundary',
+    order: 'minimal',
+    family: 'params',
+    genus: 'message',
+    species: 'event',
+    network: 'test-net',
+    channel: 'test-ch',
+  });
+  assert(minMessageEvent.from_tag === 'sender', 'Minimum message event should be created');
+  console.log(`   ✅ Minimum message event: ${Object.keys(minMessageEvent).length} properties`);
+
+  // Test minimum log event
+  const minLogEvent = DataCortex.logEvent({
+    log_line: 'Minimum log message for boundary testing',
+  });
+  assert(minLogEvent.log_line === 'Minimum log message for boundary testing', 'Minimum log event should be created');
+  console.log(`   ✅ Minimum log event: ${Object.keys(minLogEvent).length} properties`);
+
+  console.log('   ✅ All minimum parameter tests passed');
+});
+
+runner.test('should accept maximum parameters for all event types', () => {
+  console.log('🔹 Testing MAXIMUM parameters for all event types...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test maximum regular event with all possible parameters
+  const maxRegularEvent = DataCortex.event({
+    // STRING_PROP_LIST (32 char limit each)
+    kingdom: 'maximum-parameters-test-event',
+    phylum: 'comprehensive-boundary-testing',
+    class: 'all-possible-parameters-test',
+    order: 'maximum-field-validation-test',
+    family: 'complete-parameter-coverage',
+    genus: 'boundary-condition-testing',
+    species: 'full-parameter-validation',
+    network: 'test-network-parameter-max',
+    channel: 'test-channel-parameter-max',
+    spend_currency: 'gold-currency-max-test',
+    spend_type: 'purchase-type-max-test',
+    
+    // LONG_STRING_PROP_LIST (64 char limit each)
+    group_tag: 'maximum-group-tag-parameter-for-comprehensive-boundary-testing',
+    from_tag: 'maximum-from-tag-parameter-for-comprehensive-boundary-testing',
+    
+    // NUMBER_PROP_LIST
+    float1: 999999.999999,
+    float2: -999999.999999,
+    float3: 0.000001,
+    float4: 1234567890.123456,
+    spend_amount: 99999.99,
+    
+    // OTHER_PROP_LIST
+    to_list: ['recipient1', 'recipient2', 'recipient3', 'recipient4', 'recipient5'],
+  });
+  assert(maxRegularEvent.kingdom === 'maximum-parameters-test-event', 'Maximum regular event should be created');
+  console.log(`   ✅ Maximum regular event: ${Object.keys(maxRegularEvent).length} properties`);
+
+  // Test maximum economy event
+  const maxEconomyEvent = DataCortex.economyEvent({
+    spend_currency: 'premium-gold-currency-max',
+    spend_amount: 99999.99,
+    spend_type: 'premium-purchase-type-max',
+    kingdom: 'maximum-economy-event-test',
+    phylum: 'comprehensive-economy-testing',
+    class: 'all-economy-parameters-test',
+    order: 'maximum-economy-validation',
+    family: 'complete-economy-coverage',
+    genus: 'economy-boundary-testing',
+    species: 'full-economy-validation',
+    network: 'economy-network-parameter',
+    channel: 'economy-channel-parameter',
+    group_tag: 'maximum-economy-group-tag-for-comprehensive-boundary-testing',
+    from_tag: 'maximum-economy-from-tag-for-comprehensive-boundary-testing',
+    float1: 888888.888888,
+    float2: -888888.888888,
+    float3: 0.000888,
+    float4: 8888888888.888888,
+    to_list: ['economy-recipient1', 'economy-recipient2', 'economy-recipient3'],
+  });
+  assert(maxEconomyEvent.spend_currency === 'premium-gold-currency-max', 'Maximum economy event should be created');
+  console.log(`   ✅ Maximum economy event: ${Object.keys(maxEconomyEvent).length} properties`);
+
+  // Test maximum log event
+  const maxLogEvent = DataCortex.logEvent({
+    hostname: 'maximum-hostname-parameter-for-comprehensive-boundary-testing',
+    filename: 'maximum-filename-parameter-for-comprehensive-boundary-testing-with-very-long-path-name-that-reaches-the-limit-of-256-characters-for-complete-validation-of-the-boundary-conditions-in-the-datacortex-library',
+    log_level: 'maximum-log-level-parameter-for-comprehensive-boundary-test',
+    device_tag: 'maximum-device-tag-parameter-for-comprehensive-boundary-t',
+    user_tag: 'maximum-user-tag-parameter-for-comprehensive-boundary-te',
+    remote_address: 'maximum-remote-address-parameter-for-comprehensive-boundary',
+    log_line: 'Maximum log line parameter for comprehensive boundary testing with extensive content',
+    repsonse_bytes: 999999999,
+    response_ms: 999999.999,
+    event_datetime: new Date().toISOString(),
+  });
+  assert(maxLogEvent.log_line.includes('Maximum log line'), 'Maximum log event should be created');
+  console.log(`   ✅ Maximum log event: ${Object.keys(maxLogEvent).length} properties`);
+
+  console.log('   ✅ All maximum parameter tests passed');
+});
+
+runner.test('should handle parameter truncation correctly', () => {
+  console.log('🔹 Testing parameter truncation for boundary conditions...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test STRING property truncation (32 char limit)
+  const longString = 'a'.repeat(100);
+  const eventWithLongString = DataCortex.event({
+    kingdom: longString,
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    network: 'test',
+    channel: 'test',
+  });
+  assertEqual(eventWithLongString.kingdom.length, 32, 'STRING properties should be truncated to 32 chars');
+  assertEqual(eventWithLongString.kingdom, 'a'.repeat(32), 'Truncated string should match expected');
+
+  // Test LONG_STRING property truncation (64 char limit) - use from_tag since group_tag is overwritten by session key
+  const eventWithLongFromTag = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    network: 'test',
+    channel: 'test',
+    from_tag: longString, // from_tag is in LONG_STRING_PROP_LIST and won't be overwritten
+  });
+  assertEqual(eventWithLongFromTag.from_tag.length, 64, 'LONG_STRING properties should be truncated to 64 chars');
+  assertEqual(eventWithLongFromTag.from_tag, 'a'.repeat(64), 'Truncated long string should match expected');
+
+  // Test LOG_STRING property truncation (specific limits per property)
+  const logEventWithLongProps = DataCortex.logEvent({
+    hostname: longString, // 64 char limit
+    filename: longString, // 256 char limit  
+    log_level: longString, // 64 char limit
+    device_tag: longString, // 62 char limit
+    user_tag: longString, // 62 char limit
+    remote_address: longString, // 64 char limit
+    log_line: longString, // 65535 char limit
+  });
+  
+  // Verify each log property is truncated to its specific limit
+  assertEqual(logEventWithLongProps.hostname.length, 64, 'Log hostname should be truncated to 64 chars');
+  assertEqual(logEventWithLongProps.filename.length, 100, 'Log filename should preserve original length (under 256 limit)');
+  assertEqual(logEventWithLongProps.log_level.length, 64, 'Log level should be truncated to 64 chars');
+  assertEqual(logEventWithLongProps.device_tag.length, 62, 'Device tag should be truncated to 62 chars');
+  assertEqual(logEventWithLongProps.user_tag.length, 62, 'User tag should be truncated to 62 chars');
+  assertEqual(logEventWithLongProps.remote_address.length, 64, 'Remote address should be truncated to 64 chars');
+  assertEqual(logEventWithLongProps.log_line.length, 100, 'Log line should preserve original length (under 65535 limit)');
+
+  console.log('   ✅ All parameter truncation tests passed');
+});
+
 // Server response validation tests
 runner.test('should handle server errors with real requests', async () => {
   console.log('Testing real server error handling...');
@@ -1639,6 +2160,600 @@ runner.test('should confirm all requested functionality is implemented', () => {
   
   assertEqual(true, true, 'All functionality confirmed working');
 });
+
+// ============================================================================
+// NEGATIVE TEST CASES: Invalid Property Types on Track Events
+// ============================================================================
+
+runner.test('should handle invalid property types gracefully - STRING properties', () => {
+  console.log('🔴 Testing invalid types for STRING properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test STRING_PROP_LIST properties with invalid types
+  const stringProps = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'network', 'channel'];
+  
+  stringProps.forEach(prop => {
+    console.log(`   Testing ${prop} with invalid types...`);
+    
+    // Test with null - should be deleted from event
+    const eventWithNull = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test', 
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: null
+    });
+    assertEqual(eventWithNull[prop], undefined, `${prop} should be undefined when null`);
+    
+    // Test with undefined - should be deleted from event
+    const eventWithUndefined = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test', 
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: undefined
+    });
+    assertEqual(eventWithUndefined[prop], undefined, `${prop} should be undefined when undefined`);
+    
+    // Test with empty string - should be deleted from event
+    const eventWithEmpty = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test', 
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: ''
+    });
+    assertEqual(eventWithEmpty[prop], undefined, `${prop} should be undefined when empty string`);
+    
+    // Test with number - should be converted to string and truncated
+    const eventWithNumber = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test', 
+      genus: 'test',
+      species: 'test',
+      network: 'test',
+      channel: 'test',
+      [prop]: 12345
+    });
+    assertEqual(eventWithNumber[prop], '12345', `${prop} should convert number to string`);
+    
+    // Test with boolean - should be converted to string
+    const eventWithBoolean = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test', 
+      network: 'test',
+      channel: 'test',
+      [prop]: true
+    });
+    assertEqual(eventWithBoolean[prop], 'true', `${prop} should convert boolean to string`);
+    
+    // Test with object - should be converted to string
+    const eventWithObject = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      network: 'test', 
+      channel: 'test',
+      [prop]: { test: 'value' }
+    });
+    assertEqual(eventWithObject[prop], '[object Object]', `${prop} should convert object to string`);
+  });
+  
+  console.log('   ✅ All STRING property type conversions working correctly');
+});
+
+runner.test('should handle invalid property types gracefully - LONG_STRING properties', () => {
+  console.log('🔴 Testing invalid types for LONG_STRING properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org', 
+    app_ver: '1.0.0',
+  });
+
+  // Test LONG_STRING_PROP_LIST properties with invalid types
+  const longStringProps = ['group_tag', 'from_tag'];
+  
+  longStringProps.forEach(prop => {
+    console.log(`   Testing ${prop} with invalid types...`);
+    
+    // Test with null - should be deleted from event
+    const eventWithNull = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: null
+    });
+    assertEqual(eventWithNull[prop], undefined, `${prop} should be undefined when null`);
+    
+    // Test with number - should be converted to string and truncated to 64 chars
+    const longNumber = 1234567890123456789012345678901234567890123456789012345678901234567890;
+    const eventWithNumber = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: longNumber
+    });
+    assertEqual(eventWithNumber[prop].length, 64, `${prop} should be truncated to 64 characters`);
+    
+    // Test with array - should be converted to string
+    const eventWithArray = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: [1, 2, 3]
+    });
+    assertEqual(eventWithArray[prop], '1,2,3', `${prop} should convert array to string`);
+  });
+  
+  console.log('   ✅ All LONG_STRING property type conversions working correctly');
+});
+
+runner.test('should handle invalid property types gracefully - NUMBER properties', () => {
+  console.log('🔴 Testing invalid types for NUMBER properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test NUMBER_PROP_LIST properties with invalid types
+  const numberProps = ['float1', 'float2', 'float3', 'float4', 'spend_amount'];
+  
+  numberProps.forEach(prop => {
+    console.log(`   Testing ${prop} with invalid types...`);
+    
+    // Test with null - should be deleted from event
+    const eventWithNull = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: null
+    });
+    assertEqual(eventWithNull[prop], undefined, `${prop} should be undefined when null`);
+    
+    // Test with string number - should be parsed to number
+    const eventWithStringNumber = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: '123.45'
+    });
+    assertEqual(eventWithStringNumber[prop], 123.45, `${prop} should parse string number`);
+    
+    // Test with invalid string - should be deleted from event
+    const eventWithInvalidString = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: 'not-a-number'
+    });
+    assertEqual(eventWithInvalidString[prop], undefined, `${prop} should be undefined when invalid string`);
+    
+    // Test with boolean - should be deleted from event (not finite)
+    const eventWithBoolean = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: true
+    });
+    assertEqual(eventWithBoolean[prop], undefined, `${prop} should be undefined when boolean`);
+    
+    // Test with Infinity - should be deleted from event (not finite)
+    const eventWithInfinity = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: Infinity
+    });
+    assertEqual(eventWithInfinity[prop], undefined, `${prop} should be undefined when Infinity`);
+    
+    // Test with NaN - should be deleted from event (not finite)
+    const eventWithNaN = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: NaN
+    });
+    assertEqual(eventWithNaN[prop], undefined, `${prop} should be undefined when NaN`);
+    
+    // Test with object - should be deleted from event
+    const eventWithObject = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: { value: 123 }
+    });
+    assertEqual(eventWithObject[prop], undefined, `${prop} should be undefined when object`);
+    
+    // Test with array - should be deleted from event
+    const eventWithArray = DataCortex.event({
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+      [prop]: [1, 2, 3]
+    });
+    assertEqual(eventWithArray[prop], undefined, `${prop} should be undefined when array`);
+  });
+  
+  console.log('   ✅ All NUMBER property type conversions working correctly');
+});
+
+runner.test('should handle invalid property types in economyEvent', () => {
+  console.log('🔴 Testing invalid types for economyEvent properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test spend_amount with invalid types - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.economyEvent({
+      spend_currency: 'gold',
+      spend_amount: 'not-a-number', // Invalid type
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'spend_amount is required', 'Should throw error for invalid spend_amount type');
+  }
+  assert(errorThrown, 'Should throw error for invalid spend_amount');
+  
+  // Test spend_currency with null - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.economyEvent({
+      spend_currency: null, // Invalid
+      spend_amount: 100,
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'spend_currency is required', 'Should throw error for null spend_currency');
+  }
+  assert(errorThrown, 'Should throw error for null spend_currency');
+  
+  // Test with valid types - should work
+  const validEconomyEvent = DataCortex.economyEvent({
+    spend_currency: 'gold',
+    spend_amount: 100.50,
+    spend_type: 'purchase',
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+  assertEqual(validEconomyEvent.spend_currency, 'gold', 'Valid economy event should work');
+  assertEqual(validEconomyEvent.spend_amount, 100.50, 'Valid spend_amount should be preserved');
+  
+  console.log('   ✅ economyEvent property type validation working correctly');
+});
+
+runner.test('should handle invalid property types in messageSendEvent', () => {
+  console.log('🔴 Testing invalid types for messageSendEvent properties...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test from_tag with null - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.messageSendEvent({
+      from_tag: null, // Invalid
+      to_tag: 'receiver',
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'from_tag is required', 'Should throw error for null from_tag');
+  }
+  assert(errorThrown, 'Should throw error for null from_tag');
+  
+  // Test to_list with non-array - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.messageSendEvent({
+      from_tag: 'sender',
+      to_list: 'not-an-array', // Invalid type
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'to_list must be an array.', 'Should throw error for non-array to_list');
+  }
+  assert(errorThrown, 'Should throw error for non-array to_list');
+  
+  // Test with empty to_list and no to_tag - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.messageSendEvent({
+      from_tag: 'sender',
+      to_list: [], // Empty array
+      kingdom: 'test',
+      phylum: 'test',
+      class: 'test',
+      order: 'test',
+      family: 'test',
+      genus: 'test',
+      species: 'test',
+    });
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'must have at least 1 in to_list or a to_tag', 'Should throw error for empty to_list');
+  }
+  assert(errorThrown, 'Should throw error for empty to_list');
+  
+  // Test with valid types - should work
+  const validMessageEvent = DataCortex.messageSendEvent({
+    from_tag: 'sender123',
+    to_tag: 'receiver456',
+    to_list: ['extra1', 'extra2'],
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+  assertEqual(validMessageEvent.from_tag, 'sender123', 'Valid message event should work');
+  assert(Array.isArray(validMessageEvent.to_list), 'to_list should be an array');
+  assert(validMessageEvent.to_list.includes('receiver456'), 'to_list should include to_tag');
+  
+  console.log('   ✅ messageSendEvent property type validation working correctly');
+});
+
+runner.test('should handle completely invalid event objects', () => {
+  console.log('🔴 Testing completely invalid event objects...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test with null props - should throw error
+  let errorThrown = false;
+  try {
+    DataCortex.event(null);
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for null props');
+  }
+  assert(errorThrown, 'Should throw error for null props');
+  
+  // Test with undefined props - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.event(undefined);
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for undefined props');
+  }
+  assert(errorThrown, 'Should throw error for undefined props');
+  
+  // Test with string props - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.event('not-an-object');
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for string props');
+  }
+  assert(errorThrown, 'Should throw error for string props');
+  
+  // Test with number props - should throw error
+  errorThrown = false;
+  try {
+    DataCortex.event(123);
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for number props');
+  }
+  assert(errorThrown, 'Should throw error for number props');
+  
+  // Test with array props - should throw error (arrays are objects but not valid)
+  errorThrown = false;
+  try {
+    DataCortex.event(['not', 'valid']);
+  } catch (error) {
+    errorThrown = true;
+    assertEqual(error.message, 'props must be an object', 'Should throw error for array props');
+  }
+  assert(errorThrown, 'Should throw error for array props');
+  
+  console.log('   ✅ Invalid event object validation working correctly');
+});
+
+runner.test('should handle edge cases in property type conversion', () => {
+  console.log('🔴 Testing edge cases in property type conversion...');
+  
+  DataCortex.init({
+    api_key: 'test-key',
+    org_name: 'test-org',
+    app_ver: '1.0.0',
+  });
+
+  // Test with very long strings - should be truncated
+  const veryLongString = 'a'.repeat(100);
+  const eventWithLongString = DataCortex.event({
+    kingdom: veryLongString, // Should be truncated to 32 chars
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+  });
+  assertEqual(eventWithLongString.kingdom.length, 32, 'Long string should be truncated to 32 chars');
+  assertEqual(eventWithLongString.kingdom, 'a'.repeat(32), 'Truncated string should match expected');
+  
+  // Test with very long group_tag - should be truncated to 64 chars
+  const eventWithLongGroupTag = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    group_tag: veryLongString, // Should be truncated to 64 chars
+  });
+  assertEqual(eventWithLongGroupTag.group_tag.length, 64, 'Long group_tag should be truncated to 64 chars');
+  
+  // Test with negative numbers - should be preserved
+  const eventWithNegative = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: -123.45,
+  });
+  assertEqual(eventWithNegative.float1, -123.45, 'Negative numbers should be preserved');
+  
+  // Test with zero - should be preserved
+  const eventWithZero = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: 0,
+  });
+  assertEqual(eventWithZero.float1, 0, 'Zero should be preserved');
+  
+  // Test with scientific notation string - should be parsed
+  const eventWithScientific = DataCortex.event({
+    kingdom: 'test',
+    phylum: 'test',
+    class: 'test',
+    order: 'test',
+    family: 'test',
+    genus: 'test',
+    species: 'test',
+    float1: '1.23e-4',
+  });
+  assertEqual(eventWithScientific.float1, 0.000123, 'Scientific notation should be parsed');
+  
+  console.log('   ✅ Edge case property type conversions working correctly');
+});
+
+console.log('🎯 All negative test cases for invalid property types completed!');
 
 // CRITICAL: Real server validation that will cause yarn test to fail with invalid API keys
 runner.test('should validate API key with real server - INTEGRATION TEST', () => {
