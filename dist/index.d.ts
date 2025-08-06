@@ -19,14 +19,9 @@ interface EventProps {
     float2?: number;
     float3?: number;
     float4?: number;
-    network?: string;
-    channel?: string;
     group_tag?: string;
-    from_tag?: string;
-    type?: string;
     event_index?: number;
     event_datetime?: string;
-    to_list?: string[];
 }
 interface EconomyEventProps extends EventProps {
     spend_currency: string;
@@ -34,6 +29,8 @@ interface EconomyEventProps extends EventProps {
     spend_type?: string;
 }
 interface MessageSendEventProps extends EventProps {
+    network?: string;
+    channel?: string;
     from_tag: string;
     to_tag?: string;
     to_list?: string[];

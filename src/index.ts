@@ -8,13 +8,11 @@ import {
   LOG_OTHER_PROP_LIST,
 } from './constants';
 
-// Constants
 const EVENT_SEND_COUNT = 10;
 const LOG_SEND_COUNT = 10;
 const DELAY_MS = 2 * 1000;
 const API_BASE_URL = 'https://api.data-cortex.com';
 
-// Type definitions
 export interface InitOptions {
   api_key: string;
   org_name: string;
@@ -24,7 +22,6 @@ export interface InitOptions {
   add_error_handler?: boolean;
   errorLog?: (...args: any[]) => void;
 }
-
 export interface EventProps {
   kingdom?: string;
   phylum?: string;
@@ -37,28 +34,22 @@ export interface EventProps {
   float2?: number;
   float3?: number;
   float4?: number;
-  network?: string;
-  channel?: string;
   group_tag?: string;
-  from_tag?: string;
-  type?: string;
   event_index?: number;
   event_datetime?: string;
-  to_list?: string[];
 }
-
 export interface EconomyEventProps extends EventProps {
   spend_currency: string;
   spend_amount: number;
   spend_type?: string;
 }
-
 export interface MessageSendEventProps extends EventProps {
+  network?: string;
+  channel?: string;
   from_tag: string;
   to_tag?: string;
   to_list?: string[];
 }
-
 export interface LogEventProps {
   log_line?: string;
   hostname?: string;
@@ -71,11 +62,18 @@ export interface LogEventProps {
   repsonse_bytes?: number;
   response_ms?: number;
 }
-
 interface InternalEvent extends EventProps {
   event_index: number;
   event_datetime: string;
   type: string;
+  spend_currency: string;
+  spend_amount: number;
+  spend_type?: string;
+  network?: string;
+  channel?: string;
+  from_tag: string;
+  to_tag?: string;
+  to_list?: string[];
 }
 
 interface DefaultBundle {
