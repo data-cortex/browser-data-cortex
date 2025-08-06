@@ -702,28 +702,28 @@ export function logEvent(props: LogEventProps): void {
       }
     }
   }
-  LOG_NUMBER_PROP_LIST.forEach((p) => {
+  for (const p in LOG_NUMBER_PROP_LIST) {
     if (p in props) {
-      let val = (props as unknown as Record<string, unknown>)[p];
+      let val = props[p] as number | string;
       if (typeof val !== 'number') {
-        val = parseFloat(val as string);
+        val = parseFloat(val);
       }
-      if (isFinite(val as number)) {
-        (props as unknown as Record<string, unknown>)[p] = val;
+      if (isFinite(val)) {
+        props[p] = val;
       } else {
-        delete (props as unknown as Record<string, unknown>)[p];
+        props[p] = undefined;
       }
     }
-  });
+  }
 
-  const e: Record<string, unknown> = {};
+  const e = {} as LogEventProps;
   for (let i = 0; i < LOG_PROP_LIST.length; i++) {
     const key = LOG_PROP_LIST[i];
     if (key in props) {
-      e[key] = (props as unknown as Record<string, unknown>)[key];
+      e[key] = props[key];
     }
   }
-  g_logList.push(e as unknown as LogEventProps);
+  g_logList.push(e);
   _setStoredItem('dc.log_list', g_logList);
   _sendLogsLater();
 }
