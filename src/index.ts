@@ -134,7 +134,7 @@ let g_apiBaseUrl: string = API_BASE_URL;
 
 let g_isReady: boolean = false;
 let g_isSending: boolean = false;
-let g_timeout: ReturnType<typeof setTimeout> | false = false;
+let g_timeout: ReturnType<typeof setTimeout> | null = null;
 
 let g_apiKey: string | false = false;
 let g_orgName: string | false = false;
@@ -254,8 +254,7 @@ function _generateRandomString(): string {
   return text;
 }
 
-// Main functions
-function init(opts: InitOptions): void {
+export function init(opts: InitOptions): void {
   g_apiBaseUrl =
     opts.base_url ||
     _getStoredItem('dc.base_url', false as string | false) ||
@@ -313,15 +312,13 @@ function _onError(e: ErrorEvent): void {
   }
 }
 
-function isReady(): boolean {
+export function isReady(): boolean {
   return g_isReady;
 }
-
-function getDeviceTag(): string | false {
+export function getDeviceTag(): string | false {
   return g_deviceTag;
 }
-
-function addUserTag(userTag: string | null | undefined): void {
+export function addUserTag(userTag: string | null | undefined): void {
   g_userTag = userTag ? String(userTag) : false;
   if (g_userTag) {
     _setStoredItem('dc.user_tag', g_userTag);
@@ -329,16 +326,14 @@ function addUserTag(userTag: string | null | undefined): void {
     _clearStoredItem('dc.user_tag');
   }
 }
-// Event functions
-function event(props: EventProps): InternalEvent {
+export function event(props: EventProps) {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
   (props as any).type = 'event';
-  return _internalEventAdd(props as any);
+  _internalEventAdd(props as any);
 }
-
-function economyEvent(props: EconomyEventProps): InternalEvent {
+export function economyEvent(props: EconomyEventProps) {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -350,10 +345,9 @@ function economyEvent(props: EconomyEventProps): InternalEvent {
   }
 
   (props as any).type = 'economy';
-  return _internalEventAdd(props as any);
+  _internalEventAdd(props as any);
 }
-
-function messageSendEvent(props: MessageSendEventProps): InternalEvent {
+export function messageSendEvent(props: MessageSendEventProps) {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
@@ -377,9 +371,8 @@ function messageSendEvent(props: MessageSendEventProps): InternalEvent {
   }
 
   (props as any).type = 'message_send';
-  return _internalEventAdd(props as any);
+  _internalEventAdd(props as any);
 }
-
 function _maybeSendInstall(): void {
   if (!g_hasSendInstall) {
     g_hasSendInstall = true;
@@ -397,7 +390,6 @@ function _maybeSendInstall(): void {
     } as any);
   }
 }
-
 function _maybeAddDau(): void {
   const delta = Date.now() - g_lastDAUTime;
   if (delta > 24 * 60 * 60 * 1000) {
@@ -406,8 +398,7 @@ function _maybeAddDau(): void {
     _setStoredItem('dc.last_dau_time', g_lastDAUTime);
   }
 }
-
-function _internalEventAdd(props: any): InternalEvent {
+function _internalEventAdd(props: any) {
   props.event_index = g_nextIndex++;
   if (!props.event_datetime) {
     props.event_datetime = new Date().toISOString();
@@ -456,13 +447,11 @@ function _internalEventAdd(props: any): InternalEvent {
   g_eventList.push(e);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
-  return e;
 }
-
 function _sendEventsLater(delay?: number): void {
   if (!g_timeout && g_isReady && !g_isSending) {
     g_timeout = window.setTimeout(() => {
-      g_timeout = false;
+      g_timeout = null;
       _sendEvents();
     }, delay || 0) as any;
   }
@@ -529,7 +518,6 @@ function _sendEvents(): void {
     });
   }
 }
-
 function _request(args: RequestOptions, done: RequestCallback): void {
   let done_once = false;
   function request_done(...args: Parameters<RequestCallback>): void {
@@ -612,7 +600,6 @@ function _request(args: RequestOptions, done: RequestCallback): void {
       }
     });
 }
-
 function _removeEvents(event_list: InternalEvent[]): void {
   g_eventList = g_eventList.filter((e) => {
     return !event_list.some((e2) => {
@@ -720,8 +707,7 @@ function _setupDefaultBundle(): void {
   g_defaultBundle.device_type = device_type;
   g_defaultBundle.device_family = device_type;
 }
-
-function log(...args: any[]): LogEventProps {
+export function log(...args: any[]) {
   if (!args || args.length === 0) {
     throw new Error('log must have arguments');
   }
@@ -744,7 +730,7 @@ function log(...args: any[]): LogEventProps {
       log_line += arg;
     }
   }
-  return logEvent({ log_line });
+  logEvent({ log_line });
 }
 
 const LOG_NUMBER_PROP_LIST = ['repsonse_bytes', 'response_ms'];
@@ -766,7 +752,7 @@ const LOG_PROP_LIST = _union(
   Object.keys(LOG_STRING_PROP_MAP),
   LOG_OTHER_PROP_LIST
 );
-function logEvent(props: LogEventProps): LogEventProps {
+export function logEvent(props: LogEventProps) {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object.');
   }
@@ -804,7 +790,6 @@ function logEvent(props: LogEventProps): LogEventProps {
   g_logList.push(e);
   _setStoredItem('dc.log_list', g_logList);
   _sendLogsLater();
-  return e;
 }
 
 function _removeLogs(events: LogEventProps[]): void {
@@ -822,19 +807,18 @@ function _isError(e: any): e is Error {
   );
 }
 
-let g_logTimeout: ReturnType<typeof setTimeout> | false = false;
+let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
 let g_isLogSending: boolean = false;
 let g_logDelayCount: number = 0;
 
 function _sendLogsLater(delay: number = 0): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = window.setTimeout(() => {
-      g_logTimeout = false;
+      g_logTimeout = null;
       _sendLogs();
     }, delay) as any;
   }
 }
-
 function _sendLogs(): void {
   if (g_isReady && !g_isLogSending && g_logList.length > 0) {
     g_isLogSending = true;
@@ -887,34 +871,26 @@ function _sendLogs(): void {
     });
   }
 }
-
-function flush(): void {
+export function flush(): void {
   if (!g_isReady) {
     _errorLog('DataCortex not ready. Call init() first.');
     return;
   }
-
-  // Clear any existing timeouts to prevent duplicate sends
   if (g_timeout) {
     window.clearTimeout(g_timeout);
-    g_timeout = false;
+    g_timeout = null;
   }
   if (g_logTimeout) {
     window.clearTimeout(g_logTimeout);
-    g_logTimeout = false;
+    g_logTimeout = null;
   }
-
-  // Send events immediately
   if (g_eventList.length > 0 && !g_isSending) {
     _sendEvents();
   }
-
-  // Send logs immediately
   if (g_logList.length > 0 && !g_isLogSending) {
     _sendLogs();
   }
 }
-
 const DataCortex = {
   init,
   isReady,
@@ -927,10 +903,7 @@ const DataCortex = {
   logEvent,
   flush,
 };
-
-// Only set window.DataCortex if window is available (browser environment)
+export default DataCortex;
 if (typeof window !== 'undefined') {
   (window as any).DataCortex = DataCortex;
 }
-
-export default DataCortex;

@@ -50,21 +50,16 @@ export interface LogEventProps {
     repsonse_bytes?: number;
     response_ms?: number;
 }
-interface InternalEvent extends EventProps {
-    event_index: number;
-    event_datetime: string;
-    type: string;
-}
-declare function init(opts: InitOptions): void;
-declare function isReady(): boolean;
-declare function getDeviceTag(): string | false;
-declare function addUserTag(userTag: string | null | undefined): void;
-declare function event(props: EventProps): InternalEvent;
-declare function economyEvent(props: EconomyEventProps): InternalEvent;
-declare function messageSendEvent(props: MessageSendEventProps): InternalEvent;
-declare function log(...args: any[]): LogEventProps;
-declare function logEvent(props: LogEventProps): LogEventProps;
-declare function flush(): void;
+export declare function init(opts: InitOptions): void;
+export declare function isReady(): boolean;
+export declare function getDeviceTag(): string | false;
+export declare function addUserTag(userTag: string | null | undefined): void;
+export declare function event(props: EventProps): void;
+export declare function economyEvent(props: EconomyEventProps): void;
+export declare function messageSendEvent(props: MessageSendEventProps): void;
+export declare function log(...args: any[]): void;
+export declare function logEvent(props: LogEventProps): void;
+export declare function flush(): void;
 declare const DataCortex: {
     init: typeof init;
     isReady: typeof isReady;
