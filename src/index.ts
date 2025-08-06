@@ -231,7 +231,8 @@ function _generateRandomString(): string {
 }
 
 export function init(opts: InitOptions): void {
-  const baseUrl = opts.base_url ??
+  const baseUrl =
+    opts.base_url ??
     _getStoredItem('dc.base_url', false as string | false) ??
     API_BASE_URL;
   g_apiBaseUrl = typeof baseUrl === 'string' ? baseUrl : API_BASE_URL;
@@ -720,34 +721,32 @@ export function logEvent(props: LogEventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object.');
   }
-
   props.event_datetime ??= new Date().toISOString();
 
   for (const p in LOG_STRING_PROP_MAP) {
     if (p in props) {
       const max_len = LOG_STRING_PROP_MAP[p];
-      const val = (props as unknown as Record<string, unknown>)[p];
-      const s = val?.toString();
-      if (s) {
-        (props as unknown as Record<string, unknown>)[p] = s.slice(0, max_len);
+      const val = props[p];
+      if (val !== undefined && val !== null) {
+        props[p] = String(val).slice(0, max_len);
       } else {
-        delete (props as unknown as Record<string, unknown>)[p];
+        props[p] = undefined;
       }
     }
   }
-  LOG_NUMBER_PROP_LIST.forEach((p) => {
+  for (const p in LOG_NUMBER_PROP_LIST) {
     if (p in props) {
-      let val = (props as unknown as Record<string, unknown>)[p];
+      let val = props[p] as number | string;
       if (typeof val !== 'number') {
-        val = parseFloat(val as string);
+        val = parseFloat(val);
       }
-      if (isFinite(val as number)) {
-        (props as unknown as Record<string, unknown>)[p] = val;
+      if (isFinite(val)) {
+        props[p] = val;
       } else {
-        delete (props as unknown as Record<string, unknown>)[p];
+        props[p] = undefined;
       }
     }
-  });
+  }
 
   const e = _pick(
     props as unknown as Record<string, unknown>,
@@ -876,5 +875,6 @@ const DataCortex = {
 };
 export default DataCortex;
 if (typeof window !== 'undefined') {
-  (window as typeof window & { DataCortex: typeof DataCortex }).DataCortex = DataCortex;
+  (window as typeof window & { DataCortex: typeof DataCortex }).DataCortex =
+    DataCortex;
 }

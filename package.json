@@ -37,15 +37,14 @@
     "lint:all": "eslint src test --fix",
     "lint:all:check": "eslint src test",
     "pretty": "prettier -u --write \"**/*\" --log-level warn",
-    "test": "node test/all-tests.js",
+    "test": "yarn build && node test/all-tests.js",
     "test:unit": "node test/unit.test.js",
     "test:server": "node test/real-server-test.js",
     "test:comprehensive": "node test/comprehensive-real-server-test.js",
     "test:boundary": "node test/boundary-parameter-test.js",
     "test:coverage": "node --experimental-test-coverage test/coverage.test.js",
     "test:coverage-report": "node scripts/coverage-report.js",
-    "test:watch": "node --watch test/unit.test.js",
-    "prepublishOnly": "npm run build"
+    "test:watch": "node --watch test/unit.test.js"
   },
   "keywords": [
     "analytics",
