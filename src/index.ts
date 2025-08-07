@@ -142,6 +142,10 @@ let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
 let g_isLogSending = false;
 let g_logDelayCount = 0;
 
+let g_activeRequests = 0;
+let g_flushPromise: Promise<void> | null = null;
+let g_flushResolve: (() => void) | null = null;
+
 let g_delayCount = 0;
 
 const g_defaultBundle: DefaultBundle = {};
@@ -237,7 +241,7 @@ export function init(opts: InitOptions): void {
 
   _maybeSendInstall();
   _maybeAddDau();
-  setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
+  window.setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
 
   _setupDefaultBundle();
   g_isReady = true;
@@ -526,11 +530,14 @@ function _sendEvents(): void {
   }
 }
 function _request(args: RequestOptions, done: RequestCallback): void {
+  g_activeRequests++;
   let done_once = false;
   function request_done(...args: Parameters<RequestCallback>): void {
     if (!done_once) {
       done_once = true;
       done(...args);
+      g_activeRequests--;
+      _checkFlushDone();
     }
   }
 
@@ -727,6 +734,13 @@ function _isError(e: unknown): e is Error {
     typeof (e as Error).message === 'string'
   );
 }
+function _checkFlushDone(): void {
+  if (g_flushResolve && g_activeRequests === 0) {
+    g_flushResolve();
+    g_flushPromise = null;
+    g_flushResolve = null;
+  }
+}
 function _sendLogsLater(delay: number): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = setTimeout(() => {
@@ -792,11 +806,16 @@ function _sendLogs(): void {
     });
   }
 }
-export function flush(): void {
+export function flush(): Promise<void> {
+  if (g_flushPromise) {
+    return g_flushPromise;
+  }
+
   if (!g_isReady) {
     _errorLog('DataCortex not ready. Call init() first.');
-    return;
+    return Promise.resolve();
   }
+
   if (g_timeout) {
     clearTimeout(g_timeout);
     g_timeout = null;
@@ -805,11 +824,42 @@ export function flush(): void {
     clearTimeout(g_logTimeout);
     g_logTimeout = null;
   }
+
   if (g_eventList.length > 0 && !g_isSending) {
     _sendEvents();
   }
   if (g_logList.length > 0 && !g_isLogSending) {
     _sendLogs();
+  }
+
+  if (g_activeRequests > 0) {
+    g_flushPromise = new Promise((resolve) => {
+      g_flushResolve = resolve;
+    });
+    return g_flushPromise;
+  }
+
+  return Promise.resolve();
+}
+export function destroy(): void {
+  if (g_timeout) {
+    clearTimeout(g_timeout);
+    g_timeout = null;
+  }
+  if (g_logTimeout) {
+    clearTimeout(g_logTimeout);
+    g_logTimeout = null;
+  }
+  g_isReady = false;
+  g_isSending = false;
+  g_isLogSending = false;
+  g_eventList = [];
+  g_logList = [];
+  g_activeRequests = 0;
+  if (g_flushResolve) {
+    g_flushResolve();
+    g_flushPromise = null;
+    g_flushResolve = null;
   }
 }
 const DataCortex = {
@@ -823,6 +873,7 @@ const DataCortex = {
   log,
   logEvent,
   flush,
+  destroy,
 };
 export default DataCortex;
 if (typeof window !== 'undefined') {

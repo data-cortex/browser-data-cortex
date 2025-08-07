@@ -57,7 +57,8 @@ declare function economyEvent(props: EconomyEventProps): void;
 declare function messageSendEvent(props: MessageSendEventProps): void;
 declare function logEvent(props: LogEventProps): void;
 declare function log(...args: unknown[]): void;
-declare function flush(): void;
+declare function flush(): Promise<void>;
+declare function destroy(): void;
 declare const DataCortex: {
     init: typeof init;
     isReady: typeof isReady;
@@ -69,7 +70,8 @@ declare const DataCortex: {
     log: typeof log;
     logEvent: typeof logEvent;
     flush: typeof flush;
+    destroy: typeof destroy;
 };
 
-export { addUserTag, DataCortex as default, economyEvent, event, flush, getDeviceTag, init, isReady, log, logEvent, messageSendEvent };
+export { addUserTag, DataCortex as default, destroy, economyEvent, event, flush, getDeviceTag, init, isReady, log, logEvent, messageSendEvent };
 export type { EconomyEventProps, EventProps, InitOptions, LogEventProps, MessageSendEventProps };

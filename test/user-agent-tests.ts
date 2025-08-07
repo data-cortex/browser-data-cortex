@@ -16,7 +16,33 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 (global as any).window = dom.window;
 (global as any).document = dom.window.document;
 (global as any).localStorage = dom.window.localStorage;
-(global as any).XMLHttpRequest = dom.window.XMLHttpRequest;
+
+// Mock XMLHttpRequest to prevent ALL network requests
+class MockXMLHttpRequest {
+  public status = 200;
+  public response = '{"success": true}';
+  public responseText = '{"success": true}';
+  public onload: (() => void) | null = null;
+  public onerror: (() => void) | null = null;
+  public ontimeout: (() => void) | null = null;
+
+  open(method: string, url: string): void {
+    // Mock implementation - do nothing
+  }
+
+  send(data?: any): void {
+    // Mock successful response IMMEDIATELY (no setTimeout)
+    if (this.onload) {
+      this.onload();
+    }
+  }
+
+  setRequestHeader(name: string, value: string): void {
+    // Mock implementation - do nothing
+  }
+}
+
+(global as any).XMLHttpRequest = MockXMLHttpRequest;
 
 // Set a Chrome user agent
 Object.defineProperty((global as any).navigator, 'userAgent', {
@@ -25,10 +51,18 @@ Object.defineProperty((global as any).navigator, 'userAgent', {
   configurable: true,
 });
 
-// Mock timers
-(global as any).window.setTimeout = (fn: Function, delay: number) => 1;
+// Mock timers to prevent ANY delays
+let timeoutId = 1;
+(global as any).window.setTimeout = (fn: Function, delay: number) => {
+  // Execute IMMEDIATELY for all timeouts
+  fn();
+  return timeoutId++;
+};
 (global as any).window.clearTimeout = (id: number) => {};
-(global as any).window.setInterval = (fn: Function, delay: number) => 1;
+(global as any).window.setInterval = (fn: Function, delay: number) => {
+  // Don't execute intervals at all
+  return timeoutId++;
+};
 (global as any).window.clearInterval = (id: number) => {};
 
 // Import DataCortex
@@ -73,7 +107,7 @@ runner.test('User Agent Environment Setup', () => {
   // Clear localStorage
   (global as any).localStorage.clear();
 
-  // Initialize DataCortex
+  // Initialize DataCortex with mocked network
   DataCortex.init({
     api_key: 'test-key',
     org_name: 'test-org',
@@ -143,7 +177,7 @@ runner.test('Multiple Events with User Agent Context', () => {
   // Clear localStorage
   (global as any).localStorage.clear();
 
-  // Re-initialize DataCortex
+  // Re-initialize DataCortex with mocked network
   DataCortex.init({
     api_key: 'test-key-multi',
     org_name: 'test-org-multi',
@@ -190,7 +224,30 @@ runner.test('Multiple Events with User Agent Context', () => {
   });
 });
 
+runner.test('Network Mocking Verification', () => {
+  // Verify that network requests are properly mocked
+  const xhr = new (global as any).XMLHttpRequest();
+  
+  let requestCompleted = false;
+  xhr.onload = () => {
+    requestCompleted = true;
+  };
+  
+  xhr.open('POST', 'https://example.com/test');
+  xhr.send();
+  
+  // Should complete immediately with mocked implementation
+  if (!requestCompleted) {
+    throw new Error('Network mocking is not working properly');
+  }
+  console.log('   🔒 Network requests are properly mocked');
+});
+
 console.log('\n🏁 User Agent Parsing Tests Complete\n');
 runner.printSummary();
+
+DataCortex.destroy();
+
+
 
 export {};
