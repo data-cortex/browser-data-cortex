@@ -806,7 +806,7 @@ function _sendLogs(): void {
     });
   }
 }
-export function flush(): Promise<void> {
+export async function flush(): Promise<void> {
   if (g_flushPromise) {
     return g_flushPromise;
   }
