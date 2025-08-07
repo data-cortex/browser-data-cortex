@@ -90,14 +90,19 @@ async function runAllTests() {
     await runCommand('node', [join(__dirname, 'real-server-test.js')]);
     console.log('✅ Real server tests completed\n');
 
-    // 4. Run comprehensive real server tests
+    // 4. Run user agent parsing tests
+    console.log('🔍 Running user agent parsing tests...');
+    await runCommand('node', [join(__dirname, 'user-agent-tests.js')]);
+    console.log('✅ User agent parsing tests completed\n');
+
+    // 5. Run comprehensive real server tests
     console.log('🎯 Running comprehensive real server tests...');
     await runCommand('node', [
       join(__dirname, 'comprehensive-real-server-test.js'),
     ]);
     console.log('✅ Comprehensive real server tests completed\n');
 
-    // 5. Generate coverage report
+    // 6. Generate coverage report
     console.log('📊 Generating coverage report...');
     const coverageResult = await runCommandWithOutput('node', [
       '--experimental-test-coverage',
