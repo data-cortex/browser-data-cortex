@@ -4,6 +4,7 @@
  */
 
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Set up a minimal browser environment with proper URL
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {

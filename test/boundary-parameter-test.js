@@ -2,6 +2,7 @@
 
 // Comprehensive boundary parameter tests for all event types
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Create JSDOM environment but use Node.js native timers
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -29,36 +30,7 @@ global.window.clearTimeout = clearTimeout;
 global.window.setInterval = setInterval;
 global.window.clearInterval = clearInterval;
 
-// Mock crypto API
-const mockCrypto = {
-  getRandomValues: (array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 0xffffffff);
-    }
-    return array;
-  },
-};
-
-// Set crypto carefully
-try {
-  global.crypto = mockCrypto;
-} catch (e) {
-  Object.defineProperty(global, 'crypto', {
-    value: mockCrypto,
-    writable: true,
-    configurable: true,
-  });
-}
-
-try {
-  global.window.crypto = mockCrypto;
-} catch (e) {
-  Object.defineProperty(global.window, 'crypto', {
-    value: mockCrypto,
-    writable: true,
-    configurable: true,
-  });
-}
+// Crypto is now handled by crypto-shim.js
 
 // Import DataCortex after setting up environment
 import '../dist/browser-data-cortex.min.js';

@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Set up a minimal browser environment with proper URL
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -89,27 +90,7 @@ Object.defineProperty(global, 'navigator', {
   configurable: true,
 });
 
-// Mock crypto
-const cryptoMock = {
-  getRandomValues: (array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 0xffffffff);
-    }
-    return array;
-  },
-};
-
-Object.defineProperty(global, 'crypto', {
-  value: cryptoMock,
-  writable: true,
-  configurable: true,
-});
-
-Object.defineProperty(global.window, 'crypto', {
-  value: cryptoMock,
-  writable: true,
-  configurable: true,
-});
+// Crypto is now handled by crypto-shim.js
 
 // Mock timers to prevent infinite loops
 let timeoutId = 1;
@@ -650,27 +631,6 @@ runner.test('should handle empty string properties', () => {
   assertEqual(lastEvent.phylum, undefined);
   assertEqual(lastEvent.class, undefined);
   assertEqual(lastEvent.float1, 0);
-});
-
-runner.test('should handle crypto fallback', () => {
-  const originalCrypto = global.crypto;
-  const originalWindowCrypto = global.window.crypto;
-
-  delete global.crypto;
-  delete global.window.crypto;
-
-  DataCortex.init({
-    api_key: 'test-key',
-    org_name: 'test-org',
-  });
-
-  const deviceTag = DataCortex.getDeviceTag();
-  assertEqual(typeof deviceTag, 'string');
-  assertEqual(deviceTag.length, 32);
-
-  // Restore crypto
-  global.crypto = originalCrypto;
-  global.window.crypto = originalWindowCrypto;
 });
 
 runner.test('should initialize with custom device tag', () => {

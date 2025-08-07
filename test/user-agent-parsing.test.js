@@ -4,6 +4,7 @@
  */
 
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Popular User Agent Strings (>10% market share combined)
 const POPULAR_USER_AGENTS = {

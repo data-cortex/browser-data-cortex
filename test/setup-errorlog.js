@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Create a comprehensive browser environment
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -24,37 +25,7 @@ if (!global.navigator) {
   Object.assign(global.navigator, dom.window.navigator);
 }
 
-// Mock crypto API - handle read-only property
-const mockCrypto = {
-  getRandomValues: (array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 0xffffffff);
-    }
-    return array;
-  },
-};
-
-// Try to set global.crypto, if it fails, define it as a property
-try {
-  global.crypto = mockCrypto;
-} catch (e) {
-  Object.defineProperty(global, 'crypto', {
-    value: mockCrypto,
-    writable: true,
-    configurable: true,
-  });
-}
-
-// Set up window.crypto as well
-try {
-  global.window.crypto = mockCrypto;
-} catch (e) {
-  Object.defineProperty(global.window, 'crypto', {
-    value: mockCrypto,
-    writable: true,
-    configurable: true,
-  });
-}
+// Crypto is now handled by crypto-shim.js
 
 // Mock user agent for device detection
 Object.defineProperty(global.navigator, 'userAgent', {

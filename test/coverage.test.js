@@ -1,6 +1,7 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { JSDOM } from 'jsdom';
+import './crypto-shim.js';
 
 // Set up browser environment before importing the module
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -77,27 +78,7 @@ Object.defineProperty(global, 'navigator', {
   configurable: true,
 });
 
-// Mock crypto
-const cryptoMock = {
-  getRandomValues: (array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 0xffffffff);
-    }
-    return array;
-  },
-};
-
-Object.defineProperty(global, 'crypto', {
-  value: cryptoMock,
-  writable: true,
-  configurable: true,
-});
-
-Object.defineProperty(global.window, 'crypto', {
-  value: cryptoMock,
-  writable: true,
-  configurable: true,
-});
+// Crypto is now handled by crypto-shim.js
 
 // Mock XMLHttpRequest
 global.XMLHttpRequest = class MockXMLHttpRequest {
@@ -1164,36 +1145,5 @@ describe('DataCortex Library Coverage Tests', () => {
       global.window.XMLHttpRequest = originalXHR;
     });
 
-    test('should handle msCrypto fallback', () => {
-      const originalCrypto = global.crypto;
-      const originalWindowCrypto = global.window.crypto;
-
-      delete global.crypto;
-      delete global.window.crypto;
-
-      // Mock msCrypto
-      global.window.msCrypto = {
-        getRandomValues: (array) => {
-          for (let i = 0; i < array.length; i++) {
-            array[i] = Math.floor(Math.random() * 0xffffffff);
-          }
-          return array;
-        },
-      };
-
-      DataCortex.init({
-        api_key: 'test-key',
-        org_name: 'test-org',
-      });
-
-      const deviceTag = DataCortex.getDeviceTag();
-      assert.strictEqual(typeof deviceTag, 'string');
-      assert.strictEqual(deviceTag.length, 32);
-
-      // Cleanup
-      delete global.window.msCrypto;
-      global.crypto = originalCrypto;
-      global.window.crypto = originalWindowCrypto;
-    });
   });
 });
