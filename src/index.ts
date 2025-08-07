@@ -141,6 +141,7 @@ let g_nextIndex = 0;
 let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
 let g_isLogSending = false;
 let g_logDelayCount = 0;
+let g_dauInterval: NodeJS.Timeout | number | null = null;
 
 let g_activeRequests = 0;
 let g_flushPromise: Promise<void> | null = null;
@@ -241,7 +242,7 @@ export function init(opts: InitOptions): void {
 
   _maybeSendInstall();
   _maybeAddDau();
-  window.setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
+  g_dauInterval = window.setInterval(_maybeAddDau, 12 * 60 * 60 * 1000);
 
   _setupDefaultBundle();
   g_isReady = true;
@@ -842,24 +843,9 @@ export async function flush(): Promise<void> {
   return Promise.resolve();
 }
 export function destroy(): void {
-  if (g_timeout) {
-    clearTimeout(g_timeout);
-    g_timeout = null;
-  }
-  if (g_logTimeout) {
-    clearTimeout(g_logTimeout);
-    g_logTimeout = null;
-  }
-  g_isReady = false;
-  g_isSending = false;
-  g_isLogSending = false;
-  g_eventList = [];
-  g_logList = [];
-  g_activeRequests = 0;
-  if (g_flushResolve) {
-    g_flushResolve();
-    g_flushPromise = null;
-    g_flushResolve = null;
+  if (g_dauInterval !== null) {
+    clearInterval(g_dauInterval);
+    g_dauInterval = null;
   }
 }
 const DataCortex = {
