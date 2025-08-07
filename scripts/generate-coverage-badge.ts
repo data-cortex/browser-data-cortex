@@ -26,31 +26,31 @@ function calculateCoverage(): { percentage: number; details: string } {
     initialization: true,
     deviceTagGeneration: true,
     userTagManagement: true,
-    
+
     // Event tracking
     basicEvents: true,
     economyEvents: true,
     messageSendEvents: true,
     logEvents: true,
-    
+
     // Validation and error handling
     inputValidation: true,
     errorHandling: true,
     parameterTruncation: true,
     typeConversion: true,
-    
+
     // Storage and persistence
     localStorageIntegration: true,
     dataRestoration: true,
-    
+
     // Network and flushing
     flushFunctionality: true,
     networkMocking: true,
-    
+
     // Edge cases
     edgeCases: true,
     boundaryConditions: true,
-    
+
     // User agent parsing
     userAgentDetection: true,
     browserEnvironment: true,
@@ -62,7 +62,7 @@ function calculateCoverage(): { percentage: number; details: string } {
 
   return {
     percentage,
-    details: `${coveredFeatures}/${totalFeatures} features covered`
+    details: `${coveredFeatures}/${totalFeatures} features covered`,
   };
 }
 
@@ -77,12 +77,12 @@ function getColorForPercentage(percentage: number): string {
 
 function generateCoverageBadge(): void {
   const coverage = calculateCoverage();
-  
+
   const badge: CoverageBadge = {
     schemaVersion: 1,
     label: 'test coverage',
     message: `${coverage.percentage}%`,
-    color: getColorForPercentage(coverage.percentage)
+    color: getColorForPercentage(coverage.percentage),
   };
 
   const badgePath = join(process.cwd(), 'coverage-badge.json');
@@ -94,29 +94,7 @@ function generateCoverageBadge(): void {
   console.log(`   Color: ${badge.color}`);
   console.log(`   File: ${badgePath}`);
 
-  // Also generate a summary file
-  const summary = {
-    timestamp: new Date().toISOString(),
-    coverage: coverage.percentage,
-    details: coverage.details,
-    testSuites: {
-      unit: '7 tests',
-      boundary: '8 tests', 
-      coverage: '13 tests',
-      userAgent: '4 tests',
-      server: 'integration tests',
-      comprehensive: 'full validation'
-    },
-    totalTests: '32+ tests across all suites',
-    typeScript: true,
-    networkMocked: true,
-    status: coverage.percentage >= 80 ? 'excellent' : coverage.percentage >= 60 ? 'good' : 'needs improvement'
-  };
-
-  const summaryPath = join(process.cwd(), 'coverage-summary.json');
-  writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
   
-  console.log(`📈 Coverage Summary: ${summaryPath}`);
 }
 
 // Run if this is the main module

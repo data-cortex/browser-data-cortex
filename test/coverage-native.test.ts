@@ -28,7 +28,8 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 
 // Set up navigator with comprehensive user agent
 Object.defineProperty((global as any).navigator, 'userAgent', {
-  value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  value:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   writable: true,
   configurable: true,
 });
@@ -82,7 +83,7 @@ function cleanupTimers(): void {
 
 // Function to wait for network requests to complete
 function waitForNetwork(ms: number = 2000): Promise<void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     originalSetTimeout(resolve, ms);
   });
 }
@@ -98,7 +99,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     (global as any).localStorage.clear();
-    
+
     // Reset error log tracking
     errorLogCalls = [];
     customErrorLog = (...args: any[]) => {
@@ -112,10 +113,10 @@ describe('DataCortex Coverage Tests with Real API', () => {
     if (DataCortex && DataCortex.flush) {
       DataCortex.flush();
     }
-    
+
     // Wait for network requests to complete
     await waitForNetwork(2000);
-    
+
     // Clean up all timers
     cleanupTimers();
   });
@@ -129,7 +130,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
       });
 
       assert.strictEqual(DataCortex.isReady(), true);
-      
+
       // Trigger a real API call
       DataCortex.event({
         kingdom: 'coverage-init',
@@ -140,7 +141,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
         genus: 'test',
         species: 'init',
       });
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -157,7 +158,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
       });
 
       assert.strictEqual(DataCortex.isReady(), true);
-      
+
       // Trigger a real API call with full config
       DataCortex.event({
         kingdom: 'coverage-full',
@@ -168,7 +169,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
         genus: 'test',
         species: 'full',
       });
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -188,7 +189,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
       assert.strictEqual(typeof deviceTag1, 'string');
       assert.ok(deviceTag1.length > 0);
       assert.strictEqual(deviceTag1, deviceTag2);
-      
+
       // Test device tag in real API call
       DataCortex.event({
         kingdom: 'device-tag-test',
@@ -199,7 +200,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
         genus: 'test',
         species: 'device',
       });
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -216,8 +217,11 @@ describe('DataCortex Coverage Tests with Real API', () => {
 
     test('should manage user tags and send to real API', async () => {
       DataCortex.addUserTag('coverage-user-123');
-      assert.strictEqual((global as any).localStorage.getItem('dc.user_tag'), '"coverage-user-123"');
-      
+      assert.strictEqual(
+        (global as any).localStorage.getItem('dc.user_tag'),
+        '"coverage-user-123"'
+      );
+
       // Test user tag in real API call
       DataCortex.event({
         kingdom: 'user-tag-test',
@@ -228,13 +232,16 @@ describe('DataCortex Coverage Tests with Real API', () => {
         genus: 'test',
         species: 'user',
       });
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
-      
+
       // Test removing user tag
       DataCortex.addUserTag(null);
-      assert.strictEqual((global as any).localStorage.getItem('dc.user_tag'), null);
+      assert.strictEqual(
+        (global as any).localStorage.getItem('dc.user_tag'),
+        null
+      );
     });
   });
 
@@ -258,9 +265,11 @@ describe('DataCortex Coverage Tests with Real API', () => {
         species: 'basic',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       assert.ok(eventList.length > 0);
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -285,11 +294,13 @@ describe('DataCortex Coverage Tests with Real API', () => {
         to_list: ['recipient1', 'recipient2'],
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const lastEvent = eventList[eventList.length - 1];
       assert.strictEqual(lastEvent.kingdom, 'coverage-comprehensive');
       assert.strictEqual(lastEvent.float1, 123.45);
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -318,12 +329,14 @@ describe('DataCortex Coverage Tests with Real API', () => {
         species: 'purchase',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const economyEvent = eventList[eventList.length - 1];
       assert.strictEqual(economyEvent.type, 'economy');
       assert.strictEqual(economyEvent.spend_currency, 'USD');
       assert.strictEqual(economyEvent.spend_amount, 99.99);
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -351,10 +364,14 @@ describe('DataCortex Coverage Tests with Real API', () => {
         species: 'send',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
-      const messageEvents = eventList.filter((e: any) => e.type === 'message_send');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
+      const messageEvents = eventList.filter(
+        (e: any) => e.type === 'message_send'
+      );
       assert.ok(messageEvents.length > 0);
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -371,11 +388,16 @@ describe('DataCortex Coverage Tests with Real API', () => {
 
     test('should send logs to real API', async () => {
       DataCortex.log('Coverage test log message for real API');
-      DataCortex.log('Complex coverage log', 123, {coverage: true}, ['test', 'data']);
+      DataCortex.log('Complex coverage log', 123, { coverage: true }, [
+        'test',
+        'data',
+      ]);
 
-      const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+      const logList = JSON.parse(
+        (global as any).localStorage.getItem('dc.log_list') || '[]'
+      );
       assert.ok(logList.length >= 2);
-      
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -393,10 +415,15 @@ describe('DataCortex Coverage Tests with Real API', () => {
         response_ms: 250.5,
       });
 
-      const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+      const logList = JSON.parse(
+        (global as any).localStorage.getItem('dc.log_list') || '[]'
+      );
       const lastLog = logList[logList.length - 1];
-      assert.strictEqual(lastLog.log_line, 'Coverage log event for real API testing');
-      
+      assert.strictEqual(
+        lastLog.log_line,
+        'Coverage log event for real API testing'
+      );
+
       DataCortex.flush();
       await waitForNetwork(2000);
     });
@@ -420,10 +447,10 @@ describe('DataCortex Coverage Tests with Real API', () => {
         genus: 'error',
         species: 'test',
       });
-      
+
       DataCortex.flush();
       await waitForNetwork(3000); // Wait longer for error response
-      
+
       // Should have captured API errors
       console.log(`Captured ${errorLogCalls.length} error log calls`);
     });
@@ -480,7 +507,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
       });
 
       DataCortex.log('Integration coverage test log');
-      
+
       DataCortex.logEvent({
         log_line: 'Integration coverage log event',
         log_level: 'debug',
@@ -488,17 +515,23 @@ describe('DataCortex Coverage Tests with Real API', () => {
       });
 
       // Verify data is stored locally
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
-      const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
-      
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
+      const logList = JSON.parse(
+        (global as any).localStorage.getItem('dc.log_list') || '[]'
+      );
+
       assert.ok(eventList.length >= 3, 'Should have multiple events');
       assert.ok(logList.length >= 2, 'Should have multiple logs');
 
       // Flush all data to real API
       DataCortex.flush();
       await waitForNetwork(3000); // Wait longer for comprehensive test
-      
-      console.log(`Integration test completed with ${errorLogCalls.length} API responses`);
+
+      console.log(
+        `Integration test completed with ${errorLogCalls.length} API responses`
+      );
     });
   });
 
@@ -506,7 +539,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
     test('should properly clean up timers and network requests', async () => {
       const initialTimeouts = activeTimeouts.size;
       const initialIntervals = activeIntervals.size;
-      
+
       DataCortex.init({
         api_key: process.env.DC_API_KEY || 'test-cleanup-api',
         org_name: 'cleanup-coverage-org',
@@ -514,18 +547,26 @@ describe('DataCortex Coverage Tests with Real API', () => {
       });
 
       // Generate some activity that creates timers
-      DataCortex.event({kingdom: 'cleanup-test'});
+      DataCortex.event({ kingdom: 'cleanup-test' });
       DataCortex.log('Cleanup test log');
       DataCortex.flush();
-      
+
       // Wait for network and cleanup
       await waitForNetwork(2000);
       cleanupTimers();
-      
+
       // Verify cleanup
-      assert.strictEqual(activeTimeouts.size, 0, 'All timeouts should be cleaned up');
-      assert.strictEqual(activeIntervals.size, 0, 'All intervals should be cleaned up');
-      
+      assert.strictEqual(
+        activeTimeouts.size,
+        0,
+        'All timeouts should be cleaned up'
+      );
+      assert.strictEqual(
+        activeIntervals.size,
+        0,
+        'All intervals should be cleaned up'
+      );
+
       console.log('Timer and network cleanup verification completed');
     });
   });

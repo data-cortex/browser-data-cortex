@@ -54,7 +54,8 @@ class MockXMLHttpRequest {
 
 // Set up navigator with comprehensive user agent
 Object.defineProperty((global as any).navigator, 'userAgent', {
-  value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  value:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   writable: true,
   configurable: true,
 });
@@ -76,30 +77,40 @@ const DataCortex = (global as any).DataCortex;
 class CoverageTestRunner {
   private passed = 0;
   private failed = 0;
-  private testResults: Array<{name: string, passed: boolean, error?: string}> = [];
+  private testResults: Array<{
+    name: string;
+    passed: boolean;
+    error?: string;
+  }> = [];
 
   test(name: string, testFn: () => void): void {
     try {
       testFn();
       console.log(`✅ ${name}`);
       this.passed++;
-      this.testResults.push({name, passed: true});
+      this.testResults.push({ name, passed: true });
     } catch (error: any) {
       console.log(`❌ ${name}: ${error.message}`);
       this.failed++;
-      this.testResults.push({name, passed: false, error: error.message});
+      this.testResults.push({ name, passed: false, error: error.message });
     }
   }
 
   printSummary(): void {
-    console.log(`\n📊 Coverage Test Results: ${this.passed} passed, ${this.failed} failed`);
-    console.log(`📈 Total test coverage: ${this.testResults.length} test scenarios`);
-    
+    console.log(
+      `\n📊 Coverage Test Results: ${this.passed} passed, ${this.failed} failed`
+    );
+    console.log(
+      `📈 Total test coverage: ${this.testResults.length} test scenarios`
+    );
+
     if (this.failed > 0) {
       console.log('\n❌ Failed tests:');
-      this.testResults.filter(r => !r.passed).forEach(r => {
-        console.log(`   - ${r.name}: ${r.error}`);
-      });
+      this.testResults
+        .filter((r) => !r.passed)
+        .forEach((r) => {
+          console.log(`   - ${r.name}: ${r.error}`);
+        });
       process.exit(1);
     } else {
       console.log('\n🎉 All coverage tests passed!');
@@ -128,7 +139,9 @@ function assertThrows(fn: () => void, expectedMessage?: string): void {
     throw new Error('Expected function to throw');
   } catch (error: any) {
     if (expectedMessage && !error.message.includes(expectedMessage)) {
-      throw new Error(`Expected error message to contain "${expectedMessage}", got "${error.message}"`);
+      throw new Error(
+        `Expected error message to contain "${expectedMessage}", got "${error.message}"`
+      );
     }
   }
 }
@@ -157,7 +170,11 @@ runner.test('Library Initialization Coverage', () => {
     errorLog: (...args: any[]) => console.log('Custom error:', ...args),
   });
 
-  assertEqual(DataCortex.isReady(), true, 'Library should be ready with full config');
+  assertEqual(
+    DataCortex.isReady(),
+    true,
+    'Library should be ready with full config'
+  );
 });
 
 runner.test('Device Tag Generation Coverage', () => {
@@ -171,7 +188,9 @@ runner.test('Device Tag Generation Coverage', () => {
 
   assertEqual(typeof deviceTag1, 'string', 'Device tag should be string');
   // Device tag might be different length, let's check what it actually is
-  console.log(`   🔍 Device tag length: ${deviceTag1.length}, value: ${deviceTag1}`);
+  console.log(
+    `   🔍 Device tag length: ${deviceTag1.length}, value: ${deviceTag1}`
+  );
   assert(deviceTag1.length > 0, 'Device tag should not be empty');
   assertEqual(deviceTag1, deviceTag2, 'Device tag should be consistent');
 
@@ -183,7 +202,11 @@ runner.test('Device Tag Generation Coverage', () => {
   });
 
   const customDeviceTag = DataCortex.getDeviceTag();
-  assertEqual(customDeviceTag, 'custom-device-12345678901234567890', 'Custom device tag should be used');
+  assertEqual(
+    customDeviceTag,
+    'custom-device-12345678901234567890',
+    'Custom device tag should be used'
+  );
 });
 
 runner.test('User Tag Management Coverage', () => {
@@ -194,24 +217,40 @@ runner.test('User Tag Management Coverage', () => {
 
   // Test adding string user tag
   DataCortex.addUserTag('user123');
-  assertEqual((global as any).localStorage.getItem('dc.user_tag'), '"user123"', 'String user tag should be stored');
+  assertEqual(
+    (global as any).localStorage.getItem('dc.user_tag'),
+    '"user123"',
+    'String user tag should be stored'
+  );
 
   // Test adding number user tag
   DataCortex.addUserTag(12345);
-  assertEqual((global as any).localStorage.getItem('dc.user_tag'), '"12345"', 'Number user tag should be converted to string');
+  assertEqual(
+    (global as any).localStorage.getItem('dc.user_tag'),
+    '"12345"',
+    'Number user tag should be converted to string'
+  );
 
   // Test removing user tag
   DataCortex.addUserTag(null);
-  assertEqual((global as any).localStorage.getItem('dc.user_tag'), null, 'User tag should be removed when null');
+  assertEqual(
+    (global as any).localStorage.getItem('dc.user_tag'),
+    null,
+    'User tag should be removed when null'
+  );
 
   // Test adding undefined user tag
   DataCortex.addUserTag(undefined);
-  assertEqual((global as any).localStorage.getItem('dc.user_tag'), null, 'User tag should be removed when undefined');
+  assertEqual(
+    (global as any).localStorage.getItem('dc.user_tag'),
+    null,
+    'User tag should be removed when undefined'
+  );
 });
 
 runner.test('Event Tracking Coverage', () => {
   (global as any).localStorage.clear();
-  
+
   DataCortex.init({
     api_key: 'event-test',
     org_name: 'event-org',
@@ -248,11 +287,17 @@ runner.test('Event Tracking Coverage', () => {
     to_list: ['recipient1', 'recipient2'],
   });
 
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   assert(eventList.length >= 2, 'Events should be stored');
 
   const lastEvent = eventList[eventList.length - 1];
-  assertEqual(lastEvent.kingdom, 'full-kingdom', 'Event properties should be stored');
+  assertEqual(
+    lastEvent.kingdom,
+    'full-kingdom',
+    'Event properties should be stored'
+  );
   assertEqual(lastEvent.float1, 123.45, 'Float properties should be stored');
 });
 
@@ -268,7 +313,10 @@ runner.test('Event Validation Coverage', () => {
     throw new Error('Should have thrown for null');
   } catch (error: any) {
     console.log(`   🔍 Null error: ${error.message}`);
-    assert(error.message.includes('object') || error.message.includes('null'), 'Should reject null');
+    assert(
+      error.message.includes('object') || error.message.includes('null'),
+      'Should reject null'
+    );
   }
 
   try {
@@ -276,7 +324,10 @@ runner.test('Event Validation Coverage', () => {
     throw new Error('Should have thrown for string');
   } catch (error: any) {
     console.log(`   🔍 String error: ${error.message}`);
-    assert(error.message.includes('object') || error.message.includes('string'), 'Should reject string');
+    assert(
+      error.message.includes('object') || error.message.includes('string'),
+      'Should reject string'
+    );
   }
 
   try {
@@ -284,7 +335,10 @@ runner.test('Event Validation Coverage', () => {
     throw new Error('Should have thrown for number');
   } catch (error: any) {
     console.log(`   🔍 Number error: ${error.message}`);
-    assert(error.message.includes('object') || error.message.includes('number'), 'Should reject number');
+    assert(
+      error.message.includes('object') || error.message.includes('number'),
+      'Should reject number'
+    );
   }
 
   // Test string truncation
@@ -294,10 +348,20 @@ runner.test('Event Validation Coverage', () => {
     from_tag: longString,
   });
 
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
-  assertEqual(lastEvent.kingdom.length, 32, 'Kingdom should be truncated to 32 chars');
-  assertEqual(lastEvent.from_tag.length, 64, 'From tag should be truncated to 64 chars');
+  assertEqual(
+    lastEvent.kingdom.length,
+    32,
+    'Kingdom should be truncated to 32 chars'
+  );
+  assertEqual(
+    lastEvent.from_tag.length,
+    64,
+    'From tag should be truncated to 64 chars'
+  );
 
   // Test number conversion
   DataCortex.event({
@@ -308,10 +372,20 @@ runner.test('Event Validation Coverage', () => {
     float4: NaN,
   });
 
-  const numberEventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const numberEventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const numberEvent = numberEventList[numberEventList.length - 1];
-  assertEqual(numberEvent.float1, 123.45, 'Valid string number should be converted');
-  assertEqual(numberEvent.float2, undefined, 'Invalid string should be undefined');
+  assertEqual(
+    numberEvent.float1,
+    123.45,
+    'Valid string number should be converted'
+  );
+  assertEqual(
+    numberEvent.float2,
+    undefined,
+    'Invalid string should be undefined'
+  );
   assertEqual(numberEvent.float3, undefined, 'Infinity should be undefined');
   assertEqual(numberEvent.float4, undefined, 'NaN should be undefined');
 });
@@ -331,17 +405,36 @@ runner.test('Economy Event Coverage', () => {
     phylum: 'purchase',
   });
 
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const economyEvent = eventList[eventList.length - 1];
   assertEqual(economyEvent.type, 'economy', 'Economy event type should be set');
-  assertEqual(economyEvent.spend_currency, 'USD', 'Spend currency should be stored');
+  assertEqual(
+    economyEvent.spend_currency,
+    'USD',
+    'Spend currency should be stored'
+  );
   assertEqual(economyEvent.spend_amount, 9.99, 'Spend amount should be stored');
 
   // Test economy event validation
   assertThrows(() => DataCortex.economyEvent(null), 'props must be an object');
-  assertThrows(() => DataCortex.economyEvent({spend_amount: 9.99}), 'spend_currency is required');
-  assertThrows(() => DataCortex.economyEvent({spend_currency: 'USD'}), 'spend_amount is required');
-  assertThrows(() => DataCortex.economyEvent({spend_currency: 'USD', spend_amount: 'invalid'}), 'spend_amount is required');
+  assertThrows(
+    () => DataCortex.economyEvent({ spend_amount: 9.99 }),
+    'spend_currency is required'
+  );
+  assertThrows(
+    () => DataCortex.economyEvent({ spend_currency: 'USD' }),
+    'spend_amount is required'
+  );
+  assertThrows(
+    () =>
+      DataCortex.economyEvent({
+        spend_currency: 'USD',
+        spend_amount: 'invalid',
+      }),
+    'spend_amount is required'
+  );
 });
 
 runner.test('Message Send Event Coverage', () => {
@@ -372,7 +465,9 @@ runner.test('Message Send Event Coverage', () => {
     kingdom: 'message',
   });
 
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const messageEvents = eventList.filter((e: any) => e.type === 'message_send');
   assert(messageEvents.length >= 3, 'Message events should be stored');
 
@@ -386,7 +481,7 @@ runner.test('Message Send Event Coverage', () => {
   }
 
   try {
-    DataCortex.messageSendEvent({to_tag: 'receiver'});
+    DataCortex.messageSendEvent({ to_tag: 'receiver' });
     throw new Error('Should have thrown for missing from_tag');
   } catch (error: any) {
     console.log(`   🔍 Missing from_tag error: ${error.message}`);
@@ -394,15 +489,18 @@ runner.test('Message Send Event Coverage', () => {
   }
 
   try {
-    DataCortex.messageSendEvent({from_tag: 'sender'});
+    DataCortex.messageSendEvent({ from_tag: 'sender' });
     throw new Error('Should have thrown for missing to_tag/to_list');
   } catch (error: any) {
     console.log(`   🔍 Missing to_tag/to_list error: ${error.message}`);
-    assert(error.message.includes('to_tag') || error.message.includes('to_list'), 'Should require to_tag or to_list');
+    assert(
+      error.message.includes('to_tag') || error.message.includes('to_list'),
+      'Should require to_tag or to_list'
+    );
   }
 
   try {
-    DataCortex.messageSendEvent({from_tag: 'sender', to_list: 'invalid'});
+    DataCortex.messageSendEvent({ from_tag: 'sender', to_list: 'invalid' });
     throw new Error('Should have thrown for invalid to_list');
   } catch (error: any) {
     console.log(`   🔍 Invalid to_list error: ${error.message}`);
@@ -410,11 +508,14 @@ runner.test('Message Send Event Coverage', () => {
   }
 
   try {
-    DataCortex.messageSendEvent({from_tag: 'sender', to_list: []});
+    DataCortex.messageSendEvent({ from_tag: 'sender', to_list: [] });
     throw new Error('Should have thrown for empty to_list');
   } catch (error: any) {
     console.log(`   🔍 Empty to_list error: ${error.message}`);
-    assert(error.message.includes('to_list') || error.message.includes('to_tag'), 'Should require non-empty to_list or to_tag');
+    assert(
+      error.message.includes('to_list') || error.message.includes('to_tag'),
+      'Should require non-empty to_list or to_tag'
+    );
   }
 });
 
@@ -428,18 +529,20 @@ runner.test('Logging Coverage', () => {
   DataCortex.log('Simple log message');
 
   // Test log with multiple arguments
-  DataCortex.log('Complex log', 123, {key: 'value'}, true, null);
+  DataCortex.log('Complex log', 123, { key: 'value' }, true, null);
 
   // Test log with error object
   const error = new Error('Test error');
   DataCortex.log('Error log', error);
 
   // Test log with circular reference
-  const circular: any = {name: 'circular'};
+  const circular: any = { name: 'circular' };
   circular.self = circular;
   DataCortex.log('Circular log', circular);
 
-  const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+  const logList = JSON.parse(
+    (global as any).localStorage.getItem('dc.log_list') || '[]'
+  );
   assert(logList.length >= 4, 'Logs should be stored');
 
   // Test log validation
@@ -482,11 +585,25 @@ runner.test('Log Event Coverage', () => {
     filename: longString,
   });
 
-  const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+  const logList = JSON.parse(
+    (global as any).localStorage.getItem('dc.log_list') || '[]'
+  );
   const truncatedLog = logList[logList.length - 1];
-  assertEqual(truncatedLog.hostname.length, 64, 'Hostname should be truncated to 64 chars');
-  assertEqual(truncatedLog.device_tag.length, 62, 'Device tag should be truncated to 62 chars');
-  assertEqual(truncatedLog.user_tag.length, 62, 'User tag should be truncated to 62 chars');
+  assertEqual(
+    truncatedLog.hostname.length,
+    64,
+    'Hostname should be truncated to 64 chars'
+  );
+  assertEqual(
+    truncatedLog.device_tag.length,
+    62,
+    'Device tag should be truncated to 62 chars'
+  );
+  assertEqual(
+    truncatedLog.user_tag.length,
+    62,
+    'User tag should be truncated to 62 chars'
+  );
 
   // Test log event validation
   assertThrows(() => DataCortex.logEvent(null), 'props must be an object');
@@ -499,7 +616,7 @@ runner.test('Flush Functionality Coverage', () => {
   });
 
   // Add some events and logs
-  DataCortex.event({kingdom: 'flush-test'});
+  DataCortex.event({ kingdom: 'flush-test' });
   DataCortex.log('Flush test log');
 
   // Test flush doesn't throw
@@ -511,7 +628,11 @@ runner.test('Flush Functionality Coverage', () => {
   }
 
   assertEqual(flushError, null, 'Flush should not throw errors');
-  assertEqual(DataCortex.isReady(), true, 'Library should remain ready after flush');
+  assertEqual(
+    DataCortex.isReady(),
+    true,
+    'Library should remain ready after flush'
+  );
 });
 
 runner.test('Error Handling Coverage', () => {
@@ -527,20 +648,28 @@ runner.test('Error Handling Coverage', () => {
   });
 
   // Test that custom error log is properly set
-  assertEqual(typeof customErrorLog, 'function', 'Custom error log should be a function');
+  assertEqual(
+    typeof customErrorLog,
+    'function',
+    'Custom error log should be a function'
+  );
 
   // Add events to trigger potential errors
-  DataCortex.event({kingdom: 'error-test'});
+  DataCortex.event({ kingdom: 'error-test' });
   DataCortex.flush();
 
   // The error log might be called due to network mocking
-  assertEqual(typeof errorLogCalls, 'object', 'Error log calls should be tracked');
+  assertEqual(
+    typeof errorLogCalls,
+    'object',
+    'Error log calls should be tracked'
+  );
 });
 
 runner.test('LocalStorage Integration Coverage', () => {
   // Test localStorage persistence
   (global as any).localStorage.clear();
-  
+
   DataCortex.init({
     api_key: 'storage-test',
     org_name: 'storage-org',
@@ -548,7 +677,7 @@ runner.test('LocalStorage Integration Coverage', () => {
 
   // Add various data types
   DataCortex.addUserTag('storage-user');
-  DataCortex.event({kingdom: 'storage-event'});
+  DataCortex.event({ kingdom: 'storage-event' });
   DataCortex.log('Storage log');
 
   // Verify data is stored
@@ -602,8 +731,12 @@ runner.test('Edge Cases Coverage', () => {
     species: 'NaN',
   });
 
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
-  const edgeEvents = eventList.filter((e: any) => ['', 'boundary', 'special'].includes(e.kingdom));
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
+  const edgeEvents = eventList.filter((e: any) =>
+    ['', 'boundary', 'special'].includes(e.kingdom)
+  );
   assert(edgeEvents.length >= 2, 'Edge case events should be handled'); // Empty string becomes undefined
 });
 
@@ -612,7 +745,5 @@ console.log('🏁 Running comprehensive coverage tests...\n');
 runner.printSummary();
 
 DataCortex.destroy();
-
-
 
 export {};

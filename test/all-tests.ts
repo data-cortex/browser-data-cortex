@@ -40,10 +40,14 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-function runCommand(command: string, args: string[], timeout: number = 30000): Promise<void> {
+function runCommand(
+  command: string,
+  args: string[],
+  timeout: number = 30000
+): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log(`🔧 Running: ${command} ${args.join(' ')}`);
-    
+
     const child = spawn(command, args, {
       stdio: 'inherit',
       cwd: process.cwd(),
@@ -53,7 +57,9 @@ function runCommand(command: string, args: string[], timeout: number = 30000): P
 
     // Set timeout
     const timeoutId = setTimeout(() => {
-      console.log(`⏰ Command timed out after ${timeout}ms, killing process tree...`);
+      console.log(
+        `⏰ Command timed out after ${timeout}ms, killing process tree...`
+      );
       kill(child.pid, 'SIGTERM', (err) => {
         if (err) {
           console.error('Failed to kill process tree:', err);
@@ -66,7 +72,7 @@ function runCommand(command: string, args: string[], timeout: number = 30000): P
     child.on('close', (code) => {
       clearTimeout(timeoutId);
       activeProcesses.delete(child);
-      
+
       if (code === 0) {
         resolve();
       } else {
@@ -91,41 +97,74 @@ async function runAllTestsWithCoverage(): Promise<void> {
 
     // 2. Run boundary parameter tests (quick)
     console.log('🔬 Running boundary parameter tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'boundary-parameter-test.ts')], 20000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'boundary-parameter-test.ts')],
+      20000
+    );
     console.log('✅ Boundary parameter tests completed\n');
 
     // 3. Run user agent tests (quick with mocked network)
     console.log('🔍 Running user agent parsing tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'user-agent-tests.ts')], 15000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'user-agent-tests.ts')],
+      15000
+    );
     console.log('✅ User agent parsing tests completed\n');
 
     // 4. Run coverage tests (mocked network)
     console.log('📊 Running coverage tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'coverage.test.ts')], 20000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'coverage.test.ts')],
+      20000
+    );
     console.log('✅ Coverage tests completed\n');
 
     // 5. Run real server tests (with timeout)
     console.log('🌐 Running real server tests...');
     try {
-      await runCommand('npx', ['tsx', join(__dirname, 'real-server-test.ts')], 30000);
+      await runCommand(
+        'npx',
+        ['tsx', join(__dirname, 'real-server-test.ts')],
+        30000
+      );
       console.log('✅ Real server tests completed\n');
     } catch (error: any) {
       if (error.message.includes('exit code 1')) {
-        console.log('✅ Real server tests completed with expected invalid key failure.\n');
+        console.log(
+          '✅ Real server tests completed with expected invalid key failure.\n'
+        );
       } else {
         throw error;
       }
     }
 
     // 6. Run comprehensive coverage tests with TypeScript native coverage
-    console.log('🎯 Running comprehensive coverage tests with TypeScript native coverage...');
-    await runCommand('npx', ['tsx', '--test', '--experimental-test-coverage', join(__dirname, 'comprehensive-coverage.test.ts')], 180000);
+    console.log(
+      '🎯 Running comprehensive coverage tests with TypeScript native coverage...'
+    );
+    await runCommand(
+      'npx',
+      [
+        'tsx',
+        '--test',
+        '--experimental-test-coverage',
+        join(__dirname, 'comprehensive-coverage.test.ts'),
+      ],
+      180000
+    );
     console.log('✅ Comprehensive coverage tests completed\n');
 
     // 7. Generate coverage badge
     console.log('🏆 Generating coverage badge...');
     try {
-      await runCommand('npx', ['tsx', join(__dirname, '..', 'scripts', 'generate-coverage-badge.ts')], 10000);
+      await runCommand(
+        'npx',
+        ['tsx', join(__dirname, '..', 'scripts', 'generate-coverage-badge.ts')],
+        10000
+      );
       console.log('✅ Coverage badge generated\n');
     } catch (error: any) {
       console.log('⚠️  Coverage badge generation failed:', error.message, '\n');
@@ -146,7 +185,6 @@ async function runAllTestsWithCoverage(): Promise<void> {
     console.log('   - coverage-badge.json (for CI/CD)');
     console.log('   - coverage-summary.json (detailed metrics)');
     console.log('   - coverage/ directory (HTML reports)');
-    
   } catch (error: any) {
     console.error('\n❌ Test suite failed:', error.message);
     cleanup();
@@ -167,7 +205,9 @@ const overallTimeout = setTimeout(() => {
 runAllTestsWithCoverage()
   .then(() => {
     clearTimeout(overallTimeout);
-    console.log('\n✨ Comprehensive test suite with coverage completed successfully! Starting cleanup...');
+    console.log(
+      '\n✨ Comprehensive test suite with coverage completed successfully! Starting cleanup...'
+    );
     cleanup();
     console.log('Cleanup finished. Exiting...');
     process.exit(0);

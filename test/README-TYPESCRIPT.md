@@ -7,6 +7,7 @@ All tests in the `test/` directory are now written in TypeScript. The original J
 ## Test Files
 
 ### Core Test Files
+
 - ✅ `crypto-shim.ts` - Crypto polyfill for Node.js environment
 - ✅ `setup.ts` - Browser environment setup with JSDOM
 - ✅ `setup-errorlog.ts` - Error logging setup for tests
@@ -41,23 +42,27 @@ npm run test:watch         # Watch mode for unit tests
 ## Key Features
 
 ### Type Safety
+
 - Full TypeScript type annotations throughout
 - Proper typing for global variables with `(global as any)`
 - Interface definitions for test data structures
 - Type-safe function parameters and return values
 
 ### Modern ES Modules
+
 - Uses ES module `import/export` syntax
 - `import.meta.url` for file path resolution
 - No CommonJS `require()` statements
 
 ### Test Infrastructure
+
 - Reusable TypeScript test runner classes
 - Comprehensive error handling with proper typing
 - Timeout handling to prevent hanging tests
 - JSDOM browser environment simulation
 
 ### Dependencies
+
 - `tsx` - Direct TypeScript execution without compilation
 - `@types/jsdom` - Type definitions for JSDOM
 - All existing functionality preserved
@@ -67,7 +72,7 @@ npm run test:watch         # Watch mode for unit tests
 All TypeScript tests are passing:
 
 - **Unit Tests**: 7/7 passing ✅
-- **Boundary Parameter Tests**: 8/8 passing ✅  
+- **Boundary Parameter Tests**: 8/8 passing ✅
 - **User Agent Tests**: 3/3 passing ✅
 - **Real Server Tests**: Working with valid API keys ✅
 - **Comprehensive Tests**: Full endpoint validation ✅

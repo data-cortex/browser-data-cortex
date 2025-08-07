@@ -41,7 +41,11 @@ const localStorageProxy = new Proxy(localStorageMock, {
     }
     return target.getItem(prop as string);
   },
-  set(target: typeof localStorageMock, prop: string | symbol, value: any): boolean {
+  set(
+    target: typeof localStorageMock,
+    prop: string | symbol,
+    value: any
+  ): boolean {
     if (prop in target) {
       (target as any)[prop] = value;
     } else {
@@ -52,7 +56,10 @@ const localStorageProxy = new Proxy(localStorageMock, {
   has(target: typeof localStorageMock, prop: string | symbol): boolean {
     return prop in target || target.getItem(prop as string) !== null;
   },
-  deleteProperty(target: typeof localStorageMock, prop: string | symbol): boolean {
+  deleteProperty(
+    target: typeof localStorageMock,
+    prop: string | symbol
+  ): boolean {
     target.removeItem(prop as string);
     return true;
   },
@@ -98,23 +105,33 @@ let intervalId = 1;
 const timeouts = new Map<number, any>();
 const intervals = new Map<number, any>();
 
-(global as any).setTimeout = (global as any).window.setTimeout = (fn: Function, delay: number): number => {
+(global as any).setTimeout = (global as any).window.setTimeout = (
+  fn: Function,
+  delay: number
+): number => {
   const id = timeoutId++;
   // Don't actually execute to prevent loops during testing
   return id;
 };
 
-(global as any).clearTimeout = (global as any).window.clearTimeout = (id: number): void => {
+(global as any).clearTimeout = (global as any).window.clearTimeout = (
+  id: number
+): void => {
   timeouts.delete(id);
 };
 
-(global as any).setInterval = (global as any).window.setInterval = (fn: Function, delay: number): number => {
+(global as any).setInterval = (global as any).window.setInterval = (
+  fn: Function,
+  delay: number
+): number => {
   const id = intervalId++;
   // Don't actually execute to prevent loops during testing
   return id;
 };
 
-(global as any).clearInterval = (global as any).window.clearInterval = (id: number): void => {
+(global as any).clearInterval = (global as any).window.clearInterval = (
+  id: number
+): void => {
   intervals.delete(id);
 };
 
@@ -329,4 +346,11 @@ runner.test('should handle number conversion', () => {
 // Run all tests
 runner.run().catch(console.error);
 
-export { runner, assert, assertEqual, assertThrows, DataCortex, localStorageProxy };
+export {
+  runner,
+  assert,
+  assertEqual,
+  assertThrows,
+  DataCortex,
+  localStorageProxy,
+};

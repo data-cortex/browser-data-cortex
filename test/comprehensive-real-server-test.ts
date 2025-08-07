@@ -147,7 +147,9 @@ DataCortex.log('Comprehensive test log 1', { test: 'data1' });
 DataCortex.log('Comprehensive test log 2', 12345, true);
 DataCortex.log('Comprehensive test log 3', ['array', 'data']);
 DataCortex.log('Comprehensive test log 4 with error', new Error('Test error'));
-DataCortex.log('Comprehensive test log 5', { complex: { nested: { data: 'value' } } });
+DataCortex.log('Comprehensive test log 5', {
+  complex: { nested: { data: 'value' } },
+});
 console.log('   ✅ Added 5 simple logs');
 
 // 6. User Tag Management
@@ -174,8 +176,12 @@ DataCortex.event({
 console.log('   ✅ Added edge case event');
 
 console.log('\n📦 All test data prepared. Local storage summary:');
-const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
-const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+const eventList = JSON.parse(
+  (global as any).localStorage.getItem('dc.event_list') || '[]'
+);
+const logList = JSON.parse(
+  (global as any).localStorage.getItem('dc.log_list') || '[]'
+);
 console.log(`   📊 Events in storage: ${eventList.length}`);
 console.log(`   📝 Logs in storage: ${logList.length}`);
 
@@ -209,50 +215,60 @@ waitForAllServerResponses().then(() => {
     console.log('   📝 All log types accepted by server');
     console.log('   🔄 All API endpoints responding successfully');
     console.log('   ✨ Library remains ready for continued use');
-    
+
     console.log('\n🎉 COMPREHENSIVE TEST PASSED');
     console.log('   All DataCortex API endpoints are working correctly.');
     console.log('   The provided API key has full access to all features.');
-    
+
     process.exit(0);
   } else {
     console.log('\n❌ ERRORS: Server rejected some or all requests');
     console.log('   🔑 API key appears to be INVALID');
     console.log('   🚫 Server authentication failed');
-    
+
     // Categorize errors
     let badApiKeyErrors = 0;
     let forbiddenErrors = 0;
     let otherErrors = 0;
-    
+
     console.log('\n📋 Error Analysis:');
     errorLogCalls.forEach((call, index) => {
       const errorMessage = call.join(' ').toLowerCase();
       console.log(`   ${index + 1}. ${call[0]}`);
-      
-      if (errorMessage.includes('bad api key') || errorMessage.includes('invalid api key')) {
+
+      if (
+        errorMessage.includes('bad api key') ||
+        errorMessage.includes('invalid api key')
+      ) {
         badApiKeyErrors++;
-      } else if (errorMessage.includes('403') || errorMessage.includes('forbidden')) {
+      } else if (
+        errorMessage.includes('403') ||
+        errorMessage.includes('forbidden')
+      ) {
         forbiddenErrors++;
       } else {
         otherErrors++;
       }
     });
-    
+
     console.log('\n📈 Error Summary:');
     console.log(`   🔑 Bad API Key errors: ${badApiKeyErrors}`);
     console.log(`   🔒 403 Forbidden errors: ${forbiddenErrors}`);
     console.log(`   ❓ Other errors: ${otherErrors}`);
-    
+
     if (forbiddenErrors > 0) {
       console.log(`   📴 Library disabled: ${!DataCortex.isReady()}`);
     }
-    
+
     console.log('\n💥 COMPREHENSIVE TEST FAILED');
-    console.log('   The API key is invalid or there are server authentication issues.');
+    console.log(
+      '   The API key is invalid or there are server authentication issues.'
+    );
     console.log('   This is expected when testing with invalid API keys.');
-    console.log('   To test with a valid key, set DC_API_KEY environment variable.');
-    
+    console.log(
+      '   To test with a valid key, set DC_API_KEY environment variable.'
+    );
+
     // Exit with error code to fail the test
     process.exit(1);
   }
@@ -261,13 +277,17 @@ waitForAllServerResponses().then(() => {
 // Handle any uncaught errors
 process.on('uncaughtException', (error) => {
   console.error('\n💥 Uncaught Exception:', error.message);
-  console.log('   This might indicate a network error or server connectivity issue.');
+  console.log(
+    '   This might indicate a network error or server connectivity issue.'
+  );
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('\n💥 Unhandled Rejection:', reason);
-  console.log('   This might indicate a network error or server connectivity issue.');
+  console.log(
+    '   This might indicate a network error or server connectivity issue.'
+  );
   process.exit(1);
 });
 

@@ -46,7 +46,8 @@ class MockXMLHttpRequest {
 
 // Set a Chrome user agent
 Object.defineProperty((global as any).navigator, 'userAgent', {
-  value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  value:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   writable: true,
   configurable: true,
 });
@@ -116,7 +117,7 @@ runner.test('User Agent Environment Setup', () => {
 
   // Verify initialization
   assertEqual(DataCortex.isReady(), true, 'DataCortex should be ready');
-  
+
   // Create an event
   DataCortex.event({
     kingdom: 'user-agent-test',
@@ -132,25 +133,35 @@ runner.test('User Agent Environment Setup', () => {
   const eventList = JSON.parse(
     (global as any).localStorage.getItem('dc.event_list') || '[]'
   );
-  
+
   if (eventList.length === 0) {
     throw new Error('No events found in localStorage');
   }
 
   const lastEvent = eventList[eventList.length - 1];
-  
+
   // Verify basic event properties
-  assertEqual(lastEvent.kingdom, 'user-agent-test', 'Kingdom should be set correctly');
+  assertEqual(
+    lastEvent.kingdom,
+    'user-agent-test',
+    'Kingdom should be set correctly'
+  );
   assertEqual(lastEvent.type, 'event', 'Event type should be set');
-  
+
   // Log any user agent related fields that were detected
-  console.log(`   🔍 Event created with ${Object.keys(lastEvent).length} properties`);
-  
+  console.log(
+    `   🔍 Event created with ${Object.keys(lastEvent).length} properties`
+  );
+
   if (lastEvent.os) {
-    console.log(`   🖥️  OS detected: ${lastEvent.os} ${lastEvent.os_ver || ''}`);
+    console.log(
+      `   🖥️  OS detected: ${lastEvent.os} ${lastEvent.os_ver || ''}`
+    );
   }
   if (lastEvent.browser) {
-    console.log(`   🌐 Browser detected: ${lastEvent.browser} ${lastEvent.browser_ver || ''}`);
+    console.log(
+      `   🌐 Browser detected: ${lastEvent.browser} ${lastEvent.browser_ver || ''}`
+    );
   }
   if (lastEvent.device_type) {
     console.log(`   📱 Device type: ${lastEvent.device_type}`);
@@ -160,13 +171,13 @@ runner.test('User Agent Environment Setup', () => {
 runner.test('User Agent String Access', () => {
   // Verify we can access the user agent string
   const userAgent = (global as any).navigator.userAgent;
-  
+
   if (!userAgent || userAgent.length === 0) {
     throw new Error('User agent string is not accessible');
   }
-  
+
   console.log(`   📋 User Agent: ${userAgent.substring(0, 50)}...`);
-  
+
   // Verify it contains expected Chrome information
   if (!userAgent.includes('Chrome')) {
     throw new Error('User agent should contain Chrome information');
@@ -208,34 +219,46 @@ runner.test('Multiple Events with User Agent Context', () => {
   const eventList = JSON.parse(
     (global as any).localStorage.getItem('dc.event_list') || '[]'
   );
-  
+
   const ourEventCount = eventList.length - initialCount;
   if (ourEventCount !== 3) {
-    throw new Error(`Expected 3 new events, got ${ourEventCount} (total: ${eventList.length}, initial: ${initialCount})`);
+    throw new Error(
+      `Expected 3 new events, got ${ourEventCount} (total: ${eventList.length}, initial: ${initialCount})`
+    );
   }
-  
-  console.log(`   📊 Created ${ourEventCount} new events successfully (total: ${eventList.length})`);
-  
+
+  console.log(
+    `   📊 Created ${ourEventCount} new events successfully (total: ${eventList.length})`
+  );
+
   // Verify our events have the expected properties
   const ourEvents = eventList.slice(-3); // Get the last 3 events
   ourEvents.forEach((event: any, index: number) => {
-    assertEqual(event.kingdom, `multi-event-${index + 1}`, `Event ${index + 1} kingdom should be correct`);
-    assertEqual(event.float1, (index + 1) * 10, `Event ${index + 1} float1 should be correct`);
+    assertEqual(
+      event.kingdom,
+      `multi-event-${index + 1}`,
+      `Event ${index + 1} kingdom should be correct`
+    );
+    assertEqual(
+      event.float1,
+      (index + 1) * 10,
+      `Event ${index + 1} float1 should be correct`
+    );
   });
 });
 
 runner.test('Network Mocking Verification', () => {
   // Verify that network requests are properly mocked
   const xhr = new (global as any).XMLHttpRequest();
-  
+
   let requestCompleted = false;
   xhr.onload = () => {
     requestCompleted = true;
   };
-  
+
   xhr.open('POST', 'https://example.com/test');
   xhr.send();
-  
+
   // Should complete immediately with mocked implementation
   if (!requestCompleted) {
     throw new Error('Network mocking is not working properly');
@@ -247,7 +270,5 @@ console.log('\n🏁 User Agent Parsing Tests Complete\n');
 runner.printSummary();
 
 DataCortex.destroy();
-
-
 
 export {};

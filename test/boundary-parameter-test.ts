@@ -71,20 +71,24 @@ class BoundaryTestRunner {
   }
 
   getResults(): { passed: number; failed: number; total: number } {
-    const passed = this.results.filter(r => r.passed).length;
-    const failed = this.results.filter(r => !r.passed).length;
+    const passed = this.results.filter((r) => r.passed).length;
+    const failed = this.results.filter((r) => !r.passed).length;
     return { passed, failed, total: this.results.length };
   }
 
   printSummary(): void {
     const { passed, failed, total } = this.getResults();
-    console.log(`\n📊 Test Results: ${passed}/${total} passed, ${failed} failed`);
-    
+    console.log(
+      `\n📊 Test Results: ${passed}/${total} passed, ${failed} failed`
+    );
+
     if (failed > 0) {
       console.log('\n❌ Failed tests:');
-      this.results.filter(r => !r.passed).forEach(r => {
-        console.log(`   - ${r.name}: ${r.error}`);
-      });
+      this.results
+        .filter((r) => !r.passed)
+        .forEach((r) => {
+          console.log(`   - ${r.name}: ${r.error}`);
+        });
       process.exit(1);
     } else {
       console.log('\n🎉 All boundary parameter tests passed!');
@@ -130,13 +134,15 @@ runner.test('Minimum required parameters for regular event', () => {
     network: 'test-net',
     channel: 'test-ch',
   });
-  
+
   assertEqual(result, undefined, 'Event should return undefined');
-  
+
   // Check localStorage
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   assert(eventList.length > 0, 'Event should be stored');
-  
+
   const lastEvent = eventList[eventList.length - 1];
   assertEqual(lastEvent.kingdom, 'min', 'Kingdom should be stored correctly');
 });
@@ -155,10 +161,12 @@ runner.test('Minimum required parameters for economy event', () => {
     network: 'test-net',
     channel: 'test-ch',
   });
-  
+
   assertEqual(result, undefined, 'Economy event should return undefined');
-  
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
   assertEqual(lastEvent.type, 'economy', 'Should be economy event');
   assertEqual(lastEvent.spend_currency, 'gold', 'Currency should be stored');
@@ -178,10 +186,12 @@ runner.test('Minimum required parameters for message send event', () => {
     network: 'test-net',
     channel: 'test-ch',
   });
-  
+
   assertEqual(result, undefined, 'Message event should return undefined');
-  
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
   assertEqual(lastEvent.type, 'message_send', 'Should be message_send event');
   assertEqual(lastEvent.from_tag, 'sender', 'From tag should be stored');
@@ -191,14 +201,20 @@ runner.test('Minimum required parameters for log event', () => {
   const result = DataCortex.logEvent({
     log_line: 'Minimum log message for boundary testing',
   });
-  
+
   assertEqual(result, undefined, 'Log event should return undefined');
-  
-  const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+
+  const logList = JSON.parse(
+    (global as any).localStorage.getItem('dc.log_list') || '[]'
+  );
   assert(logList.length > 0, 'Log should be stored');
-  
+
   const lastLog = logList[logList.length - 1];
-  assertEqual(lastLog.log_line, 'Minimum log message for boundary testing', 'Log line should be stored');
+  assertEqual(
+    lastLog.log_line,
+    'Minimum log message for boundary testing',
+    'Log line should be stored'
+  );
 });
 
 // Test 2: Maximum Parameters
@@ -224,28 +240,47 @@ runner.test('Maximum parameters for regular event', () => {
     float3: 0.000001,
     float4: 1234567890.123456,
   });
-  
+
   assertEqual(result, undefined, 'Event should return undefined');
-  
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
-  
+
   // The kingdom string is 29 characters, so it shouldn't be truncated
   const originalKingdom = 'maximum-parameters-test-event';
-  assertEqual(lastEvent.kingdom.length, originalKingdom.length, 'Kingdom should not be truncated if under 32 chars');
-  assertEqual(lastEvent.kingdom, originalKingdom, 'Kingdom should match original string');
-  
+  assertEqual(
+    lastEvent.kingdom.length,
+    originalKingdom.length,
+    'Kingdom should not be truncated if under 32 chars'
+  );
+  assertEqual(
+    lastEvent.kingdom,
+    originalKingdom,
+    'Kingdom should match original string'
+  );
+
   // The from_tag string is 61 characters, so it shouldn't be truncated (limit is 64)
-  const originalFromTag = 'maximum-from-tag-parameter-for-comprehensive-boundary-testing';
-  assertEqual(lastEvent.from_tag.length, originalFromTag.length, 'From tag should not be truncated if under 64 chars');
-  assertEqual(lastEvent.from_tag, originalFromTag, 'From tag should match original string');
+  const originalFromTag =
+    'maximum-from-tag-parameter-for-comprehensive-boundary-testing';
+  assertEqual(
+    lastEvent.from_tag.length,
+    originalFromTag.length,
+    'From tag should not be truncated if under 64 chars'
+  );
+  assertEqual(
+    lastEvent.from_tag,
+    originalFromTag,
+    'From tag should match original string'
+  );
   assertEqual(lastEvent.float1, 999999.999999, 'Float1 should be preserved');
 });
 
 // Test 3: String Truncation
 runner.test('String property truncation limits', () => {
   const veryLongString = 'x'.repeat(200);
-  
+
   const result = DataCortex.event({
     kingdom: veryLongString, // 32 char limit
     phylum: 'test',
@@ -256,21 +291,35 @@ runner.test('String property truncation limits', () => {
     species: 'test',
     from_tag: veryLongString, // 64 char limit
   });
-  
+
   assertEqual(result, undefined, 'Event should return undefined');
-  
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
-  
-  assertEqual(lastEvent.kingdom.length, 32, 'Kingdom should be truncated to 32 chars');
-  assertEqual(lastEvent.from_tag.length, 64, 'From tag should be truncated to 64 chars');
-  assertEqual(lastEvent.kingdom, 'x'.repeat(32), 'Truncated string should match expected');
+
+  assertEqual(
+    lastEvent.kingdom.length,
+    32,
+    'Kingdom should be truncated to 32 chars'
+  );
+  assertEqual(
+    lastEvent.from_tag.length,
+    64,
+    'From tag should be truncated to 64 chars'
+  );
+  assertEqual(
+    lastEvent.kingdom,
+    'x'.repeat(32),
+    'Truncated string should match expected'
+  );
 });
 
 // Test 4: Log Property Truncation
 runner.test('Log property truncation limits', () => {
   const longString = 'y'.repeat(200);
-  
+
   const result = DataCortex.logEvent({
     hostname: longString, // 64 char limit
     filename: longString, // 256 char limit
@@ -280,19 +329,49 @@ runner.test('Log property truncation limits', () => {
     remote_address: longString, // 64 char limit
     log_line: longString, // 65535 char limit (should preserve 200 chars)
   });
-  
+
   assertEqual(result, undefined, 'Log event should return undefined');
-  
-  const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+
+  const logList = JSON.parse(
+    (global as any).localStorage.getItem('dc.log_list') || '[]'
+  );
   const lastLog = logList[logList.length - 1];
-  
-  assertEqual(lastLog.hostname.length, 64, 'Hostname should be truncated to 64 chars');
-  assertEqual(lastLog.filename.length, 200, 'Filename should preserve length (under 256 limit)');
-  assertEqual(lastLog.log_level.length, 64, 'Log level should be truncated to 64 chars');
-  assertEqual(lastLog.device_tag.length, 62, 'Device tag should be truncated to 62 chars');
-  assertEqual(lastLog.user_tag.length, 62, 'User tag should be truncated to 62 chars');
-  assertEqual(lastLog.remote_address.length, 64, 'Remote address should be truncated to 64 chars');
-  assertEqual(lastLog.log_line.length, 200, 'Log line should preserve length (under 65535 limit)');
+
+  assertEqual(
+    lastLog.hostname.length,
+    64,
+    'Hostname should be truncated to 64 chars'
+  );
+  assertEqual(
+    lastLog.filename.length,
+    200,
+    'Filename should preserve length (under 256 limit)'
+  );
+  assertEqual(
+    lastLog.log_level.length,
+    64,
+    'Log level should be truncated to 64 chars'
+  );
+  assertEqual(
+    lastLog.device_tag.length,
+    62,
+    'Device tag should be truncated to 62 chars'
+  );
+  assertEqual(
+    lastLog.user_tag.length,
+    62,
+    'User tag should be truncated to 62 chars'
+  );
+  assertEqual(
+    lastLog.remote_address.length,
+    64,
+    'Remote address should be truncated to 64 chars'
+  );
+  assertEqual(
+    lastLog.log_line.length,
+    200,
+    'Log line should preserve length (under 65535 limit)'
+  );
 });
 
 // Test 5: Number Validation
@@ -310,12 +389,14 @@ runner.test('Number property validation', () => {
     float3: 0,
     float4: 999999999.999999,
   });
-  
+
   assertEqual(result, undefined, 'Event should return undefined');
-  
-  const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+
+  const eventList = JSON.parse(
+    (global as any).localStorage.getItem('dc.event_list') || '[]'
+  );
   const lastEvent = eventList[eventList.length - 1];
-  
+
   assertEqual(lastEvent.float1, 123.456789, 'Float1 should be preserved');
   assertEqual(lastEvent.float2, -987.654321, 'Float2 should be preserved');
   assertEqual(lastEvent.float3, 0, 'Float3 zero should be preserved');

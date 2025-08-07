@@ -131,45 +131,50 @@ waitForServerResponse().then(() => {
     console.log('   - Server accepted all requests');
     console.log('   - No authentication errors');
     console.log('   - Library remains ready for use');
-    
+
     console.log('\n🎉 REAL SERVER TEST PASSED');
     console.log('   The provided API key is valid and working correctly.');
-    
+
     process.exit(0);
   } else {
     console.log('❌ ERRORS: Server errors detected');
     console.log('   - API key appears to be INVALID');
     console.log('   - Server rejected requests');
-    
+
     // Analyze error messages
     let hasBadApiKeyError = false;
     let has403Error = false;
-    
+
     errorLogCalls.forEach((call, index) => {
       console.log(`   Error ${index + 1}:`, call[0]);
-      
+
       const errorMessage = call.join(' ').toLowerCase();
-      if (errorMessage.includes('bad api key') || errorMessage.includes('invalid api key')) {
+      if (
+        errorMessage.includes('bad api key') ||
+        errorMessage.includes('invalid api key')
+      ) {
         hasBadApiKeyError = true;
       }
       if (errorMessage.includes('403') || errorMessage.includes('forbidden')) {
         has403Error = true;
       }
     });
-    
+
     if (hasBadApiKeyError) {
       console.log('   🎯 Confirmed: Bad API Key error from server');
     }
-    
+
     if (has403Error) {
       console.log('   🔒 Confirmed: 403 Forbidden response from server');
       console.log(`   📴 Library disabled status: ${!DataCortex.isReady()}`);
     }
-    
+
     console.log('\n💥 REAL SERVER TEST FAILED');
-    console.log('   The provided API key is invalid or there are server issues.');
+    console.log(
+      '   The provided API key is invalid or there are server issues.'
+    );
     console.log('   This is expected behavior when testing with invalid keys.');
-    
+
     // Exit with error code to fail the test
     process.exit(1);
   }

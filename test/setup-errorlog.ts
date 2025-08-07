@@ -41,7 +41,11 @@ const localStorageProxy = new Proxy(localStorageMock, {
     }
     return target.getItem(prop as string);
   },
-  set(target: typeof localStorageMock, prop: string | symbol, value: any): boolean {
+  set(
+    target: typeof localStorageMock,
+    prop: string | symbol,
+    value: any
+  ): boolean {
     if (prop in target) {
       (target as any)[prop] = value;
     } else {

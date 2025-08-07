@@ -14,10 +14,14 @@ const __dirname = join(__filename, '..');
 
 console.log('⚡ Running quick test suite (no network calls)...\n');
 
-function runCommand(command: string, args: string[], timeout: number = 15000): Promise<void> {
+function runCommand(
+  command: string,
+  args: string[],
+  timeout: number = 15000
+): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log(`🔧 Running: ${command} ${args.join(' ')}`);
-    
+
     const child = spawn(command, args, {
       stdio: 'inherit',
       cwd: process.cwd(),
@@ -54,17 +58,29 @@ async function runQuickTests(): Promise<void> {
 
     // 2. Boundary tests (no network)
     console.log('🔬 Running boundary parameter tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'boundary-parameter-test.ts')], 15000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'boundary-parameter-test.ts')],
+      15000
+    );
     console.log('✅ Boundary parameter tests completed\n');
 
     // 3. User agent tests (mocked network)
     console.log('🔍 Running user agent tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'user-agent-tests.ts')], 10000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'user-agent-tests.ts')],
+      10000
+    );
     console.log('✅ User agent tests completed\n');
 
     // 4. Coverage tests (mocked network)
     console.log('📊 Running coverage tests...');
-    await runCommand('npx', ['tsx', join(__dirname, 'coverage.test.ts')], 15000);
+    await runCommand(
+      'npx',
+      ['tsx', join(__dirname, 'coverage.test.ts')],
+      15000
+    );
     console.log('✅ Coverage tests completed\n');
 
     console.log('\n🎉 All quick tests completed successfully!');
@@ -74,8 +90,9 @@ async function runQuickTests(): Promise<void> {
     console.log('   ✅ User Agent Tests: 4 tests');
     console.log('   ✅ Coverage Tests: 13 tests');
     console.log('   📈 Total: 32+ tests completed');
-    console.log('\n💡 For real API testing, use: npm run test:coverage-real-api');
-    
+    console.log(
+      '\n💡 For real API testing, use: npm run test:coverage-real-api'
+    );
   } catch (error: any) {
     console.error('\n❌ Quick test suite failed:', error.message);
     process.exit(1);

@@ -62,7 +62,8 @@ function setNetworkMode(real: boolean): void {
 
 // Set up navigator with comprehensive user agent
 Object.defineProperty((global as any).navigator, 'userAgent', {
-  value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  value:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   writable: true,
   configurable: true,
 });
@@ -112,8 +113,6 @@ function cleanupTimers(): void {
   activeIntervals.clear();
 }
 
-
-
 // Import DataCortex
 import '../dist/browser-data-cortex.min.js';
 const DataCortex = (global as any).DataCortex;
@@ -125,7 +124,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     (global as any).localStorage.clear();
-    
+
     // Reset error log tracking
     errorLogCalls = [];
     customErrorLog = (...args: any[]) => {
@@ -182,10 +181,16 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
       });
 
       DataCortex.addUserTag('test-user-123');
-      assert.strictEqual((global as any).localStorage.getItem('dc.user_tag'), '"test-user-123"');
+      assert.strictEqual(
+        (global as any).localStorage.getItem('dc.user_tag'),
+        '"test-user-123"'
+      );
 
       DataCortex.addUserTag(null);
-      assert.strictEqual((global as any).localStorage.getItem('dc.user_tag'), null);
+      assert.strictEqual(
+        (global as any).localStorage.getItem('dc.user_tag'),
+        null
+      );
     });
 
     test('should track basic events', () => {
@@ -204,9 +209,11 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         species: 'unit',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       assert.ok(eventList.length > 0);
-      
+
       const lastEvent = eventList[eventList.length - 1];
       assert.strictEqual(lastEvent.kingdom, 'unit-test');
       assert.strictEqual(lastEvent.type, 'event');
@@ -235,7 +242,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         from_tag: longString,
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const lastEvent = eventList[eventList.length - 1];
       assert.strictEqual(lastEvent.kingdom.length, 32);
       assert.strictEqual(lastEvent.from_tag.length, 64);
@@ -255,7 +264,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         float4: NaN,
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const numberEvent = eventList[eventList.length - 1];
       assert.strictEqual(numberEvent.float1, 123.45);
       assert.strictEqual(numberEvent.float2, undefined);
@@ -279,7 +290,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         kingdom: 'min-test',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       assert.ok(eventList.length > 0);
     });
 
@@ -303,7 +316,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         to_list: ['recipient1', 'recipient2'],
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const lastEvent = eventList[eventList.length - 1];
       assert.strictEqual(lastEvent.kingdom, 'max-test');
       assert.strictEqual(lastEvent.float1, 123.45);
@@ -317,7 +332,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         kingdom: 'economy-test',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const economyEvent = eventList[eventList.length - 1];
       assert.strictEqual(economyEvent.type, 'economy');
       assert.strictEqual(economyEvent.spend_currency, 'USD');
@@ -331,15 +348,21 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         kingdom: 'message-test',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
-      const messageEvents = eventList.filter((e: any) => e.type === 'message_send');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
+      const messageEvents = eventList.filter(
+        (e: any) => e.type === 'message_send'
+      );
       assert.ok(messageEvents.length > 0);
     });
 
     test('should handle logging', () => {
-      DataCortex.log('Test log message', 123, {test: true});
+      DataCortex.log('Test log message', 123, { test: true });
 
-      const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+      const logList = JSON.parse(
+        (global as any).localStorage.getItem('dc.log_list') || '[]'
+      );
       assert.ok(logList.length > 0);
       assert.ok(logList[0].log_line.includes('Test log message'));
     });
@@ -351,7 +374,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         hostname: 'test-server',
       });
 
-      const logList = JSON.parse((global as any).localStorage.getItem('dc.log_list') || '[]');
+      const logList = JSON.parse(
+        (global as any).localStorage.getItem('dc.log_list') || '[]'
+      );
       assert.ok(logList.length > 0);
       assert.strictEqual(logList[0].log_line, 'Test log event');
     });
@@ -373,9 +398,11 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         phylum: 'detection',
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       const lastEvent = eventList[eventList.length - 1];
-      
+
       // Should have user agent related fields
       assert.ok(Object.keys(lastEvent).length > 5);
     });
@@ -457,7 +484,9 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         float4: Number.EPSILON,
       });
 
-      const eventList = JSON.parse((global as any).localStorage.getItem('dc.event_list') || '[]');
+      const eventList = JSON.parse(
+        (global as any).localStorage.getItem('dc.event_list') || '[]'
+      );
       assert.ok(eventList.length > 0);
     });
 
@@ -467,7 +496,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
         org_name: 'cleanup-org',
       });
 
-      DataCortex.event({kingdom: 'cleanup-test'});
+      DataCortex.event({ kingdom: 'cleanup-test' });
       DataCortex.flush();
 
       // Verify cleanup doesn't throw errors
@@ -482,7 +511,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
       });
 
       DataCortex.addUserTag('storage-user');
-      DataCortex.event({kingdom: 'storage-event'});
+      DataCortex.event({ kingdom: 'storage-event' });
       DataCortex.log('Storage log');
 
       const userTag = (global as any).localStorage.getItem('dc.user_tag');
