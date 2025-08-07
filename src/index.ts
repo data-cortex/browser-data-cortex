@@ -64,15 +64,15 @@ export interface LogEventProps {
   [key: string]: unknown;
 }
 interface InternalEvent extends EventProps {
-  event_index: number;
-  event_datetime: string;
-  type: string;
-  spend_currency: string;
-  spend_amount: number;
+  event_index?: number;
+  event_datetime?: string;
+  type?: string;
+  spend_currency?: string;
+  spend_amount?: number;
   spend_type?: string;
   network?: string;
   channel?: string;
-  from_tag: string;
+  from_tag?: string;
   to_tag?: string;
   to_list?: string[];
   [key: string]: unknown;
@@ -220,7 +220,7 @@ export function init(opts: InitOptions): void {
   g_eventList = _getStoredItem<InternalEvent[]>('dc.event_list') ?? [];
   g_nextIndex = _getStoredItem<number>('dc.next_index') ?? 0;
   for (const e of g_eventList) {
-    if (e.event_index >= g_nextIndex) {
+    if (e.event_index && e.event_index >= g_nextIndex) {
       g_nextIndex = e.event_index + 1;
     }
   }
@@ -276,8 +276,8 @@ export function event(props: EventProps): void {
   if (!props || typeof props !== 'object') {
     throw new Error('props must be an object');
   }
-  (props as InternalEvent).type = 'event';
-  _internalEventAdd(props as InternalEvent);
+  const e = Object.assign({} as InternalEvent, props, { type: 'event' });
+  _internalEventAdd(e);
 }
 export function economyEvent(props: EconomyEventProps): void {
   if (!props || typeof props !== 'object') {
@@ -290,8 +290,8 @@ export function economyEvent(props: EconomyEventProps): void {
     throw new Error('spend_amount is required');
   }
 
-  (props as InternalEvent).type = 'economy';
-  _internalEventAdd(props as InternalEvent);
+  const e = Object.assign({} as InternalEvent, props, { type: 'economy' });
+  _internalEventAdd(e);
 }
 export function messageSendEvent(props: MessageSendEventProps): void {
   if (!props || typeof props !== 'object') {
@@ -314,8 +314,8 @@ export function messageSendEvent(props: MessageSendEventProps): void {
     throw new Error('must have at least 1 in to_list or a to_tag');
   }
 
-  (props as InternalEvent).type = 'message_send';
-  _internalEventAdd(props as InternalEvent);
+  const e = Object.assign({} as InternalEvent, props, { type: 'message_send' });
+  _internalEventAdd(e);
 }
 function _maybeSendInstall(): void {
   if (!g_hasSendInstall) {
@@ -331,69 +331,66 @@ function _maybeSendInstall(): void {
       family: 'organic',
       genus: 'organic',
       species: 'organic',
-    } as InternalEvent);
+    });
   }
 }
 function _maybeAddDau(): void {
   const delta = Date.now() - g_lastDAUTime;
   if (delta > 24 * 60 * 60 * 1000) {
-    _internalEventAdd({ type: 'dau' } as InternalEvent);
+    _internalEventAdd({ type: 'dau' });
     g_lastDAUTime = Date.now();
     _setStoredItem('dc.last_dau_time', g_lastDAUTime);
   }
 }
-function _internalEventAdd(props: InternalEvent): void {
-  props.event_index = g_nextIndex++;
-  if (!props.event_datetime) {
-    props.event_datetime = new Date().toISOString();
-  }
+function _internalEventAdd(e: InternalEvent): void {
+  e.event_index = g_nextIndex++;
+  e.event_datetime ??= new Date().toISOString();
 
   if (g_sessionKey) {
-    props.group_tag = g_sessionKey;
+    e.group_tag = g_sessionKey;
   }
   for (const p of STRING_PROP_LIST) {
-    if (p in props) {
-      const val = props[p];
+    if (p in e) {
+      const val = e[p];
       const s = val ? String(val) : '';
       if (s) {
-        props[p] = s.slice(0, 32);
+        e[p] = s.slice(0, 32);
       } else {
-        props[p] = undefined;
+        e[p] = undefined;
       }
     }
   }
   for (const p of LONG_STRING_PROP_LIST) {
-    if (p in props) {
-      const val = props[p];
+    if (p in e) {
+      const val = e[p];
       const s = val ? String(val) : '';
       if (s) {
-        props[p] = s.slice(0, 64);
+        e[p] = s.slice(0, 64);
       } else {
-        props[p] = undefined;
+        e[p] = undefined;
       }
     }
   }
   for (const p of NUMBER_PROP_LIST) {
-    if (p in props) {
-      let val = props[p];
+    if (p in e) {
+      let val = e[p];
       if (typeof val !== 'number') {
         val = parseFloat(String(val));
       }
       if (typeof val === 'number' && isFinite(val)) {
-        props[p] = val;
+        e[p] = val;
       } else {
-        props[p] = undefined;
+        e[p] = undefined;
       }
     }
   }
 
-  const e: Record<string, unknown> = {};
-  for (const key of EVENT_PROP_LIST) {
-    if (key in props) {
-      e[key] = props[key];
+  for (const key in e) {
+    if (!EVENT_PROP_LIST.includes(key)) {
+      e[key] = undefined;
     }
   }
-  g_eventList.push(e as InternalEvent);
+  g_eventList.push(e);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
 }
@@ -423,9 +420,7 @@ function _sendEvents(): void {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
-      } else if (
-        first_event.session_key === e.session_key
-      ) {
+      } else if (first_event.session_key === e.session_key) {
         bundle.events.push(e);
       }
       return bundle.events.length < EVENT_SEND_COUNT;
@@ -749,18 +744,18 @@ function _sendLogsLater(delay: number = 0): void {
   }
 }
 interface LogBundle extends Omit<DefaultBundle, 'events'> {
-  events: LogEventProps[];
+  events?: LogEventProps[];
 }
 
 function _sendLogs(): void {
   if (g_isReady && !g_isLogSending && g_logList.length > 0) {
     g_isLogSending = true;
 
-    const bundle = Object.assign({}, g_defaultBundle, {
+    const bundle: LogBundle = Object.assign({}, g_defaultBundle, {
       api_key: g_apiKey,
       app_ver: g_appVer,
       device_tag: g_deviceTag,
-    }) as LogBundle;
+    });
     if (g_userTag) {
       bundle.user_tag = g_userTag;
     }
@@ -793,7 +788,7 @@ function _sendLogs(): void {
       } else {
         g_logDelayCount = 0;
       }
-      if (remove) {
+      if (remove && bundle.events) {
         _removeLogs(bundle.events);
       }
 
