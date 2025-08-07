@@ -55,9 +55,9 @@ console.log('\n🔧 Initializing DataCortex...');
 
 // Initialize DataCortex
 DataCortex.init({
-  api_key: testApiKey,
-  org_name: 'comprehensive-test-org',
-  app_ver: '2.0.0',
+  apiKey: testApiKey,
+  orgName: 'comprehensive-test-org',
+  appVer: '2.0.0',
   errorLog: customErrorLog,
 });
 
@@ -132,7 +132,7 @@ logLevels.forEach((level, index) => {
     log_level: level,
     hostname: `test-server-${index + 1}.example.com`,
     filename: `/path/to/test/file-${index + 1}.js`,
-    device_tag: `test-device-${index + 1}`,
+    deviceTag: `test-device-${index + 1}`,
     user_tag: `test-user-${index + 1}`,
     remote_address: `192.168.1.${index + 1}`,
     repsonse_bytes: (index + 1) * 1024,

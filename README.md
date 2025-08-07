@@ -67,9 +67,9 @@ Generally you initialize the library as soon as possible once the library is loa
 
 ```javascript
 const opts = {
-  api_key: '<your_api_key>',
-  org_name: '<your_org_name>',
-  app_ver: '<your_app_ver>',
+  apiKey: '<your_api_key>',
+  orgName: '<your_org_name>',
+  appVer: '<your_app_ver>',
   errorLog: function (...args) {
     // Custom error handling - could send to your own logging service
     console.warn('Custom DC Error:', ...args);
@@ -80,10 +80,10 @@ window.DataCortex.init(opts);
 
 Options:
 
-- api_key: (required) Your DC API key.
-- org_name: (required) Your DC org name.
-- app_ver: (optional) Your app's version number.
-- add_error_handler: (optional) Add a JS error handler and report JS errors. (default: false)
+- apiKey: (required) Your DC API key.
+- orgName: (required) Your DC org name.
+- appVer: (optional) Your app's version number.
+- addErrorHandler: (optional) Add a JS error handler and report JS errors. (default: false)
 - errorLog: (optional) Custom error logging function. Defaults to console.error with "Data Cortex Error:" prefix.
 
 ## Installation and DAU tracking

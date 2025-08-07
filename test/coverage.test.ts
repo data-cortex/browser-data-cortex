@@ -152,20 +152,20 @@ runner.test('Library Initialization Coverage', () => {
 
   // Test initialization with minimal parameters
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'coverage-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'coverage-org',
   });
 
   assertEqual(DataCortex.isReady(), true, 'Library should be ready after init');
 
   // Test initialization with all parameters
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'coverage-org-full',
-    app_ver: '1.0.0',
-    device_tag: 'custom-device-tag',
-    base_url: 'https://custom-api.example.com',
-    add_error_handler: true,
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'coverage-org-full',
+    appVer: '1.0.0',
+    deviceTag: 'custom-device-tag',
+    baseUrl: 'https://custom-api.example.com',
+    addErrorHandler: true,
     errorLog: (...args: any[]) => console.log('Custom error:', ...args),
   });
 
@@ -178,8 +178,8 @@ runner.test('Library Initialization Coverage', () => {
 
 runner.test('Device Tag Generation Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'device-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'device-org',
   });
 
   const deviceTag1 = DataCortex.getDeviceTag();
@@ -195,9 +195,9 @@ runner.test('Device Tag Generation Coverage', () => {
 
   // Test with custom device tag
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'device-org-2',
-    device_tag: 'custom-device-12345678901234567890',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'device-org-2',
+    deviceTag: 'custom-device-12345678901234567890',
   });
 
   const customDeviceTag = DataCortex.getDeviceTag();
@@ -210,8 +210,8 @@ runner.test('Device Tag Generation Coverage', () => {
 
 runner.test('User Tag Management Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'user-tag-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'user-tag-org',
   });
 
   // Test adding string user tag
@@ -251,8 +251,8 @@ runner.test('Event Tracking Coverage', () => {
   (global as any).localStorage.clear();
 
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'event-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'event-org',
   });
 
   // Test basic event
@@ -302,8 +302,8 @@ runner.test('Event Tracking Coverage', () => {
 
 runner.test('Event Validation Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'validation-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'validation-org',
   });
 
   // Test invalid event props - check actual error messages
@@ -391,8 +391,8 @@ runner.test('Event Validation Coverage', () => {
 
 runner.test('Economy Event Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'economy-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'economy-org',
   });
 
   // Test valid economy event
@@ -438,8 +438,8 @@ runner.test('Economy Event Coverage', () => {
 
 runner.test('Message Send Event Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'message-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'message-org',
   });
 
   // Test message with to_tag
@@ -520,8 +520,8 @@ runner.test('Message Send Event Coverage', () => {
 
 runner.test('Logging Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'log-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'log-org',
   });
 
   // Test simple log
@@ -550,8 +550,8 @@ runner.test('Logging Coverage', () => {
 
 runner.test('Log Event Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'log-event-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'log-event-org',
   });
 
   // Test basic log event
@@ -610,8 +610,8 @@ runner.test('Log Event Coverage', () => {
 
 runner.test('Flush Functionality Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'flush-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'flush-org',
   });
 
   // Add some events and logs
@@ -641,8 +641,8 @@ runner.test('Error Handling Coverage', () => {
   };
 
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'error-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'error-org',
     errorLog: customErrorLog,
   });
 
@@ -670,8 +670,8 @@ runner.test('LocalStorage Integration Coverage', () => {
   (global as any).localStorage.clear();
 
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'storage-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'storage-org',
   });
 
   // Add various data types
@@ -698,8 +698,8 @@ runner.test('LocalStorage Integration Coverage', () => {
 
 runner.test('Edge Cases Coverage', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'edge-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'edge-org',
   });
 
   // Test empty string properties

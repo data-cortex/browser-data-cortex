@@ -1,10 +1,10 @@
 interface InitOptions {
-    api_key: string;
-    org_name: string;
-    app_ver?: string;
-    base_url?: string;
-    device_tag?: string;
-    add_error_handler?: boolean;
+    apiKey: string;
+    orgName: string;
+    appVer?: string;
+    baseUrl?: string;
+    deviceTag?: string;
+    addErrorHandler?: boolean;
     errorLog?: (...args: unknown[]) => void;
 }
 interface EventProps {
@@ -46,7 +46,6 @@ interface LogEventProps {
     event_datetime?: string;
     repsonse_bytes?: number;
     response_ms?: number;
-    [key: string]: unknown;
 }
 declare function init(opts: InitOptions): void;
 declare function isReady(): boolean;

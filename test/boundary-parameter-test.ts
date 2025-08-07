@@ -113,9 +113,9 @@ function assertEqual(actual: any, expected: any, message?: string): void {
 // Initialize DataCortex
 console.log('\n🔧 Initializing DataCortex...');
 DataCortex.init({
-  api_key: testApiKey,
-  org_name: 'boundary-test-org',
-  app_ver: '1.0.0',
+  apiKey: testApiKey,
+  orgName: 'boundary-test-org',
+  appVer: '1.0.0',
 });
 
 console.log(`✅ DataCortex initialized. Ready: ${DataCortex.isReady()}`);

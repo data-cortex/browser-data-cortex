@@ -56,9 +56,9 @@ console.log('\n🔧 Initializing DataCortex with custom error logging...');
 
 // Initialize DataCortex with the test API key
 DataCortex.init({
-  api_key: testApiKey,
-  org_name: 'real-server-test-org',
-  app_ver: '1.0.0',
+  apiKey: testApiKey,
+  orgName: 'real-server-test-org',
+  appVer: '1.0.0',
   errorLog: customErrorLog,
 });
 

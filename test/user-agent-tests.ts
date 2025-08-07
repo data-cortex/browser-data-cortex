@@ -109,9 +109,9 @@ runner.test('User Agent Environment Setup', () => {
 
   // Initialize DataCortex with mocked network
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
-    app_ver: '1.0.0',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
+    appVer: '1.0.0',
   });
 
   // Verify initialization
@@ -189,9 +189,9 @@ runner.test('Multiple Events with User Agent Context', () => {
 
   // Re-initialize DataCortex with mocked network
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org-multi',
-    app_ver: '1.0.0',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org-multi',
+    appVer: '1.0.0',
   });
 
   // Get initial event count (there might be automatic events like install/dau)

@@ -208,9 +208,9 @@ function assertThrows(fn: () => void, expectedMessage?: string): void {
 // Test cases
 runner.test('should initialize with required parameters', () => {
   const opts = {
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
-    app_ver: '1.0.0',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
+    appVer: '1.0.0',
   };
 
   DataCortex.init(opts);
@@ -219,8 +219,8 @@ runner.test('should initialize with required parameters', () => {
 
 runner.test('should generate device tag', () => {
   const opts = {
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   };
 
   DataCortex.init(opts);
@@ -231,8 +231,8 @@ runner.test('should generate device tag', () => {
 
 runner.test('should add and manage user tags', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   });
 
   DataCortex.addUserTag('user123');
@@ -244,8 +244,8 @@ runner.test('should add and manage user tags', () => {
 
 runner.test('should track basic event', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   });
 
   const eventData = {
@@ -280,8 +280,8 @@ runner.test('should track basic event', () => {
 
 runner.test('should throw error for invalid event props', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   });
 
   assertThrows(() => {
@@ -295,8 +295,8 @@ runner.test('should throw error for invalid event props', () => {
 
 runner.test('should truncate string properties to 32 characters', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   });
 
   const longString = 'a'.repeat(50);
@@ -317,8 +317,8 @@ runner.test('should truncate string properties to 32 characters', () => {
 
 runner.test('should handle number conversion', () => {
   DataCortex.init({
-    api_key: process.env.DC_API_KEY,
-    org_name: 'test-org',
+    apiKey: process.env.DC_API_KEY,
+    orgName: 'test-org',
   });
 
   const result = DataCortex.event({

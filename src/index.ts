@@ -14,12 +14,12 @@ const DELAY_MS: number = 2 * 1000;
 const API_BASE_URL = 'https://api.data-cortex.com';
 
 export interface InitOptions {
-  api_key: string;
-  org_name: string;
-  app_ver?: string;
-  base_url?: string;
-  device_tag?: string;
-  add_error_handler?: boolean;
+  apiKey: string;
+  orgName: string;
+  appVer?: string;
+  baseUrl?: string;
+  deviceTag?: string;
+  addErrorHandler?: boolean;
   errorLog?: (...args: unknown[]) => void;
 }
 export interface EventProps {
@@ -61,7 +61,6 @@ export interface LogEventProps {
   event_datetime?: string;
   repsonse_bytes?: number;
   response_ms?: number;
-  [key: string]: unknown;
 }
 interface InternalEvent extends EventProps {
   event_index?: number;
@@ -203,14 +202,14 @@ function _generateRandomString(): string {
 
 export function init(opts: InitOptions): void {
   const baseUrl =
-    opts.base_url ??
+    opts.baseUrl ??
     _getStoredItem<string | false>('dc.base_url') ??
     API_BASE_URL;
   g_apiBaseUrl = typeof baseUrl === 'string' ? baseUrl : API_BASE_URL;
 
-  g_apiKey = opts.api_key;
-  g_orgName = opts.org_name;
-  g_appVer = opts.app_ver ?? '0';
+  g_apiKey = opts.apiKey;
+  g_orgName = opts.orgName;
+  g_appVer = opts.appVer ?? '0';
   g_userTag = _getStoredItem<string>('dc.user_tag') ?? null;
 
   // Set custom error logging function if provided
@@ -232,9 +231,9 @@ export function init(opts: InitOptions): void {
   g_hasSendInstall =
     (_getStoredItem<boolean>('dc.has_sent_install') ?? false) ||
     Boolean(g_lastDAUTime);
-  if (opts.device_tag) {
-    g_deviceTag = opts.device_tag;
-    _setStoredItem('dc.device_tag', opts.device_tag);
+  if (opts.deviceTag) {
+    g_deviceTag = opts.deviceTag;
+    _setStoredItem('dc.device_tag', opts.deviceTag);
   } else {
     g_deviceTag = _loadDeviceTag();
   }
@@ -248,7 +247,7 @@ export function init(opts: InitOptions): void {
   g_isReady = true;
   _sendEventsLater();
 
-  if (opts.add_error_handler ?? false) {
+  if (opts.addErrorHandler ?? false) {
     window.addEventListener('error', _onError);
   }
 }
@@ -321,35 +320,38 @@ export function logEvent(props: LogEventProps): void {
   }
   props.event_datetime ??= new Date().toISOString();
 
+  // Create a mutable copy to work with
+  const mutableProps = props as Record<string, unknown>;
+
   for (const p in LOG_STRING_PROP_MAP) {
-    if (p in props) {
+    if (p in mutableProps) {
       const max_len = LOG_STRING_PROP_MAP[p];
-      const val = props[p];
+      const val = mutableProps[p];
       if (val !== undefined && val !== null) {
-        props[p] = String(val).slice(0, max_len);
+        mutableProps[p] = String(val).slice(0, max_len);
       } else {
-        props[p] = undefined;
+        mutableProps[p] = undefined;
       }
     }
   }
   for (const p of LOG_NUMBER_PROP_LIST) {
-    if (p in props) {
-      let val = props[p];
+    if (p in mutableProps) {
+      let val = mutableProps[p];
       if (typeof val !== 'number') {
         val = parseFloat(String(val));
       }
       if (typeof val === 'number' && isFinite(val)) {
-        props[p] = val;
+        mutableProps[p] = val;
       } else {
-        props[p] = undefined;
+        mutableProps[p] = undefined;
       }
     }
   }
 
   const e: LogEventProps = {};
   for (const key of LOG_PROP_LIST) {
-    if (key in props) {
-      e[key] = props[key];
+    if (key in mutableProps) {
+      (e as Record<string, unknown>)[key] = mutableProps[key];
     }
   }
   g_logList.push(e);
