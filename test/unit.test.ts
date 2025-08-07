@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 // Set up a minimal browser environment with proper URL
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -135,11 +135,8 @@ const intervals = new Map<number, any>();
   intervals.delete(id);
 };
 
-// Now import the DataCortex module
-import '../dist/browser-data-cortex.min.js';
-const DataCortex = (global as any).DataCortex;
+import DataCortex from '../dist/browser-data-cortex.min.js';
 
-// Simple test runner
 interface TestCase {
   name: string;
   fn: () => void | Promise<void>;

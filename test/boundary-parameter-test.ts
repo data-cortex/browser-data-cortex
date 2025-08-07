@@ -2,7 +2,7 @@
 
 // Comprehensive boundary parameter tests for all event types
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 // Create JSDOM environment but use Node.js native timers
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {

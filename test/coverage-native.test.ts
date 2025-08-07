@@ -9,7 +9,7 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 // Set up comprehensive browser environment
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {

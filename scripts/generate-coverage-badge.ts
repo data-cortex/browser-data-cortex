@@ -93,8 +93,6 @@ function generateCoverageBadge(): void {
   console.log(`   Details: ${coverage.details}`);
   console.log(`   Color: ${badge.color}`);
   console.log(`   File: ${badgePath}`);
-
-  
 }
 
 // Run if this is the main module

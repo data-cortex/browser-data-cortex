@@ -10,7 +10,7 @@
     "name": "Jim Lake"
   },
   "license": "MIT",
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/browser-data-cortex.min.js",
   "module": "dist/browser-data-cortex.min.js",
   "browser": "dist/browser-data-cortex.min.js",
@@ -24,9 +24,7 @@
     }
   },
   "files": [
-    "dist",
-    "src",
-    "*.d.ts"
+    "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && rollup -c",

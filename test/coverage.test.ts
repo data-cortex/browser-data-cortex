@@ -7,7 +7,7 @@
  */
 
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 console.log('📊 Running TypeScript Coverage Tests...\n');
 

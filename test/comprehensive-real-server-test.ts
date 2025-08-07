@@ -2,7 +2,7 @@
 
 // Comprehensive real server test that validates ALL API endpoints
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 // Create JSDOM environment but use Node.js native timers
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {

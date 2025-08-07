@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { JSDOM } from 'jsdom';
-import './crypto-shim.js';
+import './crypto-shim';
 
 console.log('🔍 Running User Agent Parsing Tests...\n');
 
