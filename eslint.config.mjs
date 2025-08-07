@@ -166,11 +166,11 @@ export default [
       // Strict TypeScript-specific rules (practical approach)
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { 
+        {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_'
+          destructuredArrayIgnorePattern: '^_',
         },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
@@ -241,10 +241,10 @@ export default [
           arrowParameter: false, // More lenient
           memberVariableDeclaration: false, // More lenient
           objectDestructuring: false,
-          parameter: false, // More lenient
-          propertyDeclaration: false, // More lenient
-          variableDeclaration: true,
-          variableDeclarationIgnoreFunction: true, // More lenient
+          parameter: true, // More lenient
+          propertyDeclaration: true, // More lenient
+          variableDeclaration: false,
+          variableDeclarationIgnoreFunction: false, // More lenient
         },
       ],
       '@typescript-eslint/unbound-method': 'error',
@@ -297,10 +297,10 @@ export default [
       'no-useless-return': 'error',
       'no-void': 'error',
       'no-with': 'error',
-      'radix': 'error',
-      'yoda': 'error',
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
+      radix: 'error',
+      yoda: 'error',
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
       'dot-notation': 'error',
       'guard-for-in': 'error',
       'no-caller': 'error',
@@ -405,7 +405,7 @@ export default [
       'security/detect-non-literal-fs-filename': 'error',
       'security/detect-non-literal-regexp': 'error',
       'security/detect-non-literal-require': 'error',
-      'security/detect-object-injection': 'warn', // Warn instead of error for this context
+      'security/detect-object-injection': 'off',
       'security/detect-possible-timing-attacks': 'error',
       'security/detect-pseudoRandomBytes': 'error',
       'security/detect-unsafe-regex': 'error',

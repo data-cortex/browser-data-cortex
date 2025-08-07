@@ -50,13 +50,13 @@ interface LogEventProps {
 }
 declare function init(opts: InitOptions): void;
 declare function isReady(): boolean;
-declare function getDeviceTag(): string | false;
+declare function getDeviceTag(): string | null;
 declare function addUserTag(userTag: string | null): void;
 declare function event(props: EventProps): void;
 declare function economyEvent(props: EconomyEventProps): void;
 declare function messageSendEvent(props: MessageSendEventProps): void;
-declare function log(...args: unknown[]): void;
 declare function logEvent(props: LogEventProps): void;
+declare function log(...args: unknown[]): void;
 declare function flush(): void;
 declare const DataCortex: {
     init: typeof init;

@@ -86,10 +86,10 @@ interface DefaultBundle {
   browser_ver?: string;
   device_type?: string;
   device_family?: string;
-  api_key?: string | false;
+  api_key?: string;
   app_ver?: string;
-  device_tag?: string | false;
-  user_tag?: string | false;
+  device_tag?: string;
+  user_tag?: string;
   events?: InternalEvent[];
   [key: string]: unknown;
 }
@@ -126,16 +126,16 @@ let g_isReady = false;
 let g_isSending = false;
 let g_timeout: ReturnType<typeof setTimeout> | null = null;
 
-let g_apiKey: string | false = false;
-let g_orgName: string | false = false;
+let g_apiKey: string | null = null;
+let g_orgName: string | null = null;
 let g_appVer = '0';
 
 let g_userTag: string | null = null;
 let g_eventList: InternalEvent[] = [];
 let g_hasSendInstall = false;
 let g_lastDAUTime = 0;
-let g_sessionKey: string | false = false;
-let g_deviceTag: string | false = false;
+let g_sessionKey: string | null = null;
+let g_deviceTag: string | null = null;
 let g_nextIndex = 0;
 
 let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -149,6 +149,7 @@ const g_defaultBundle: DefaultBundle = {};
 let g_logList: LogEventProps[] = [];
 
 let g_errorLog: (...args: unknown[]) => void = function (...args: unknown[]) {
+  // eslint-disable-next-line no-console
   console.error('Data Cortex Error:', ...args);
 };
 
@@ -177,7 +178,7 @@ function _clearStoredItem(name: string): void {
 }
 
 function _loadDeviceTag(): string {
-  let text = _getStoredItem<string | false>('dc.device_tag') ?? false;
+  let text = _getStoredItem<string>('dc.device_tag') ?? null;
   if (!text) {
     text = _generateRandomString();
     _setStoredItem('dc.device_tag', text);
@@ -186,16 +187,10 @@ function _loadDeviceTag(): string {
 }
 function _generateRandomString(): string {
   let text = '';
-  if (window.crypto?.getRandomValues) {
-    const array: Uint32Array = new Uint32Array(8);
-    window.crypto.getRandomValues(array);
-    for (const value of array) {
-      text += value.toString(36);
-    }
-  } else {
-    while (text.length < 32) {
-      text += Math.random().toString(36).slice(2);
-    }
+  const array: Uint32Array = new Uint32Array(8);
+  window.crypto.getRandomValues(array);
+  for (const value of array) {
+    text += value.toString(36);
   }
   text = text.slice(0, 32);
   return text;
@@ -248,21 +243,18 @@ export function init(opts: InitOptions): void {
   g_isReady = true;
   _sendEventsLater();
 
-  if (opts.add_error_handler) {
+  if (opts.add_error_handler ?? false) {
     window.addEventListener('error', _onError);
   }
 }
-
-function _onError(e: ErrorEvent): void {
-  if (e) {
-    log('Javascript Error: message:', e.message, 'error:', e.error);
-  }
+function _onError(e: unknown): void {
+  log('Javascript Error:', e);
 }
 
 export function isReady(): boolean {
   return g_isReady;
 }
-export function getDeviceTag(): string | false {
+export function getDeviceTag(): string | null {
   return g_deviceTag;
 }
 export function addUserTag(userTag: string | null): void {
@@ -274,14 +266,14 @@ export function addUserTag(userTag: string | null): void {
   }
 }
 export function event(props: EventProps): void {
-  if (!props || typeof props !== 'object') {
+  if (typeof props !== 'object' || (props as unknown) === null) {
     throw new Error('props must be an object');
   }
   const e = Object.assign({} as InternalEvent, props, { type: 'event' });
   _internalEventAdd(e);
 }
 export function economyEvent(props: EconomyEventProps): void {
-  if (!props || typeof props !== 'object') {
+  if (typeof props !== 'object' || (props as unknown) === null) {
     throw new Error('props must be an object');
   }
   if (!props.spend_currency) {
@@ -295,7 +287,7 @@ export function economyEvent(props: EconomyEventProps): void {
   _internalEventAdd(e);
 }
 export function messageSendEvent(props: MessageSendEventProps): void {
-  if (!props || typeof props !== 'object') {
+  if (typeof props !== 'object' || (props as unknown) === null) {
     throw new Error('props must be an object');
   }
   if (!props.from_tag) {
@@ -317,6 +309,72 @@ export function messageSendEvent(props: MessageSendEventProps): void {
 
   const e = Object.assign({} as InternalEvent, props, { type: 'message_send' });
   _internalEventAdd(e);
+}
+export function logEvent(props: LogEventProps): void {
+  if (typeof props !== 'object' || (props as unknown) === null) {
+    throw new Error('props must be an object.');
+  }
+  props.event_datetime ??= new Date().toISOString();
+
+  for (const p in LOG_STRING_PROP_MAP) {
+    if (p in props) {
+      const max_len = LOG_STRING_PROP_MAP[p];
+      const val = props[p];
+      if (val !== undefined && val !== null) {
+        props[p] = String(val).slice(0, max_len);
+      } else {
+        props[p] = undefined;
+      }
+    }
+  }
+  for (const p of LOG_NUMBER_PROP_LIST) {
+    if (p in props) {
+      let val = props[p];
+      if (typeof val !== 'number') {
+        val = parseFloat(String(val));
+      }
+      if (typeof val === 'number' && isFinite(val)) {
+        props[p] = val;
+      } else {
+        props[p] = undefined;
+      }
+    }
+  }
+
+  const e: LogEventProps = {};
+  for (const key of LOG_PROP_LIST) {
+    if (key in props) {
+      e[key] = props[key];
+    }
+  }
+  g_logList.push(e);
+  _setStoredItem('dc.log_list', g_logList);
+  _sendLogsLater(0);
+}
+export function log(...args: unknown[]): void {
+  if (args.length === 0) {
+    throw new Error('log must have arguments');
+  }
+  let log_line = '';
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (i > 0) {
+      log_line += ' ';
+    }
+
+    if (_isError(arg)) {
+      log_line += `${arg.message} %{arg.stack}`;
+    } else if (typeof arg === 'object') {
+      try {
+        log_line += JSON.stringify(arg);
+      } catch {
+        log_line += String(arg);
+      }
+    } else {
+      log_line += String(arg);
+    }
+  }
+  logEvent({ log_line });
 }
 function _maybeSendInstall(): void {
   if (!g_hasSendInstall) {
@@ -343,6 +401,18 @@ function _maybeAddDau(): void {
     _setStoredItem('dc.last_dau_time', g_lastDAUTime);
   }
 }
+function _cleanupString(val: unknown, max_len: number): string | undefined {
+  let ret: string | undefined;
+  if (typeof val === 'string') {
+    ret = val;
+  } else if (val !== null && val !== undefined) {
+    ret = String(val);
+  }
+  if (ret) {
+    ret = ret.slice(0, max_len);
+  }
+  return ret;
+}
 function _internalEventAdd(e: InternalEvent): void {
   e.event_index = g_nextIndex++;
   e.event_datetime ??= new Date().toISOString();
@@ -353,23 +423,13 @@ function _internalEventAdd(e: InternalEvent): void {
   for (const p of STRING_PROP_LIST) {
     if (p in e) {
       const val = e[p];
-      const s = val ? String(val) : '';
-      if (s) {
-        e[p] = s.slice(0, 32);
-      } else {
-        e[p] = undefined;
-      }
+      e[p] = _cleanupString(val, 32);
     }
   }
   for (const p of LONG_STRING_PROP_LIST) {
     if (p in e) {
       const val = e[p];
-      const s = val ? String(val) : '';
-      if (s) {
-        e[p] = s.slice(0, 64);
-      } else {
-        e[p] = undefined;
-      }
+      e[p] = _cleanupString(val, 64);
     }
   }
   for (const p of NUMBER_PROP_LIST) {
@@ -416,16 +476,16 @@ function _sendEvents(): void {
       bundle.user_tag = g_userTag;
     }
     bundle.events = [];
-    let first_event: InternalEvent | false = false;
-    g_eventList.some((e) => {
+    let first_event: InternalEvent | undefined;
+    for (const e of g_eventList) {
       if (!first_event) {
         first_event = e;
         bundle.events.push(e);
       } else if (first_event.session_key === e.session_key) {
         bundle.events.push(e);
       }
-      return bundle.events.length < EVENT_SEND_COUNT;
-    });
+    }
+    bundle.events.splice(EVENT_SEND_COUNT);
 
     const current_time = encodeURIComponent(new Date().toISOString());
     const url = `${g_apiBaseUrl}/${g_orgName}/1/track?current_time=${current_time}`;
@@ -474,7 +534,7 @@ function _request(args: RequestOptions, done: RequestCallback): void {
     }
   }
 
-  const {method} = args;
+  const { method } = args;
 
   const default_headers: Record<string, string> = {
     Accept: 'application/json',
@@ -489,19 +549,13 @@ function _request(args: RequestOptions, done: RequestCallback): void {
   }
   const headers = Object.assign({}, default_headers, args.headers);
 
-  const {url} = args;
+  const { url } = args;
 
-  // Build fetch options
   const fetchOptions: RequestInit = {
     method,
     headers,
+    body,
   };
-
-  if (body) {
-    fetchOptions.body = body;
-  }
-
-  // Add timeout support using AbortController
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   if (args.timeout) {
     const controller = new AbortController();
@@ -518,7 +572,7 @@ function _request(args: RequestOptions, done: RequestCallback): void {
         clearTimeout(timeoutId);
       }
 
-      const {status} = response;
+      const { status } = response;
       let responseBody = '';
 
       try {
@@ -655,73 +709,6 @@ function _setupDefaultBundle(): void {
   g_defaultBundle.device_type = device_type;
   g_defaultBundle.device_family = device_type;
 }
-export function log(...args: unknown[]): void {
-  if (!args || args.length === 0) {
-    throw new Error('log must have arguments');
-  }
-  let log_line = '';
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (i > 0) {
-      log_line += ' ';
-    }
-
-    if (_isError(arg)) {
-      log_line += arg.stack;
-    } else if (typeof arg === 'object') {
-      try {
-        log_line += JSON.stringify(arg);
-      } catch {
-        log_line += String(arg);
-      }
-    } else {
-      log_line += String(arg);
-    }
-  }
-  logEvent({ log_line });
-}
-export function logEvent(props: LogEventProps): void {
-  if (!props || typeof props !== 'object') {
-    throw new Error('props must be an object.');
-  }
-  props.event_datetime ??= new Date().toISOString();
-
-  for (const p in LOG_STRING_PROP_MAP) {
-    if (p in props) {
-      const max_len = LOG_STRING_PROP_MAP[p];
-      const val = props[p];
-      if (val !== undefined && val !== null) {
-        props[p] = String(val).slice(0, max_len);
-      } else {
-        props[p] = undefined;
-      }
-    }
-  }
-  for (const p of LOG_NUMBER_PROP_LIST) {
-    if (p in props) {
-      let val = props[p];
-      if (typeof val !== 'number') {
-        val = parseFloat(String(val));
-      }
-      if (typeof val === 'number' && isFinite(val)) {
-        props[p] = val;
-      } else {
-        props[p] = undefined;
-      }
-    }
-  }
-
-  const e: LogEventProps = {};
-  for (const key of LOG_PROP_LIST) {
-    if (key in props) {
-      e[key] = props[key];
-    }
-  }
-  g_logList.push(e);
-  _setStoredItem('dc.log_list', g_logList);
-  _sendLogsLater();
-}
-
 function _removeLogs(events: LogEventProps[]): void {
   g_logList.splice(0, events.length);
   _setStoredItem('dc.log_list', g_logList);
@@ -737,7 +724,7 @@ function _isError(e: unknown): e is Error {
     typeof (e as Error).message === 'string'
   );
 }
-function _sendLogsLater(delay = 0): void {
+function _sendLogsLater(delay: number): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = setTimeout(() => {
       g_logTimeout = null;
@@ -747,7 +734,7 @@ function _sendLogsLater(delay = 0): void {
 }
 interface LogBundle extends Omit<DefaultBundle, 'events'> {
   events?: LogEventProps[];
-  user_tag?: string | false;
+  user_tag?: string | null;
 }
 
 function _sendLogs(): void {

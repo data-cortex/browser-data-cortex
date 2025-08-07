@@ -7,7 +7,7 @@
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    
+
     // Strict Type Checking Options
     "strict": true,
     "noImplicitAny": true,
@@ -17,7 +17,7 @@
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-    
+
     // Additional Checks
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -27,25 +27,25 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    
+
     // Module Resolution Options
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    
+
     // Emit Options
     "noEmit": false,
     "sourceMap": true,
     "removeComments": false,
     "preserveConstEnums": true,
-    
+
     // Advanced Options
     "skipLibCheck": true,
     "useDefineForClassFields": true,
     "verbatimModuleSyntax": true,
-    
+
     // Experimental Options (only if needed)
     "experimentalDecorators": false,
     "emitDecoratorMetadata": false
