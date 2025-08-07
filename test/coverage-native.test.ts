@@ -124,7 +124,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Library Initialization with Real API', () => {
     test('should initialize with test API key', async () => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-api-key-for-coverage',
+        api_key: process.env.DC_API_KEY,
         org_name: 'coverage-org',
         errorLog: customErrorLog,
       });
@@ -148,7 +148,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
 
     test('should initialize with full configuration', async () => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-api-key-full-config',
+        api_key: process.env.DC_API_KEY,
         org_name: 'coverage-org-full',
         app_ver: '1.0.0',
         device_tag: 'coverage-device-tag',
@@ -178,7 +178,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Device Tag Generation with Real API', () => {
     test('should generate and use device tags in real API calls', async () => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-device-tag-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'device-coverage-org',
         errorLog: customErrorLog,
       });
@@ -209,7 +209,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('User Tag Management with Real API', () => {
     beforeEach(() => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-user-tag-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'user-coverage-org',
         errorLog: customErrorLog,
       });
@@ -248,7 +248,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Event Tracking with Real API', () => {
     beforeEach(() => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-event-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'event-coverage-org',
         errorLog: customErrorLog,
       });
@@ -309,7 +309,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Economy Events with Real API', () => {
     beforeEach(() => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-economy-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'economy-coverage-org',
         errorLog: customErrorLog,
       });
@@ -345,7 +345,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Message Send Events with Real API', () => {
     beforeEach(() => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-message-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'message-coverage-org',
         errorLog: customErrorLog,
       });
@@ -380,7 +380,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Logging with Real API', () => {
     beforeEach(() => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-logging-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'logging-coverage-org',
         errorLog: customErrorLog,
       });
@@ -459,7 +459,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
   describe('Comprehensive Real API Integration', () => {
     test('should perform full integration test with real API', async () => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-integration-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'integration-coverage-org',
         app_ver: '2.0.0-coverage',
         errorLog: customErrorLog,
@@ -541,7 +541,7 @@ describe('DataCortex Coverage Tests with Real API', () => {
       const initialIntervals = activeIntervals.size;
 
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-cleanup-api',
+        api_key: process.env.DC_API_KEY,
         org_name: 'cleanup-coverage-org',
         errorLog: customErrorLog,
       });

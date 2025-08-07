@@ -151,7 +151,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should initialize with required parameters', () => {
       DataCortex.init({
-        api_key: 'unit-test-key',
+        api_key: process.env.DC_API_KEY,
         org_name: 'unit-test-org',
         errorLog: customErrorLog,
       });
@@ -161,7 +161,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should generate consistent device tags', () => {
       DataCortex.init({
-        api_key: 'device-test-key',
+        api_key: process.env.DC_API_KEY,
         org_name: 'device-test-org',
       });
 
@@ -175,7 +175,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should manage user tags', () => {
       DataCortex.init({
-        api_key: 'user-tag-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'user-tag-org',
       });
 
@@ -194,7 +194,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should track basic events', () => {
       DataCortex.init({
-        api_key: 'event-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'event-org',
       });
 
@@ -220,7 +220,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should validate event parameters', () => {
       DataCortex.init({
-        api_key: 'validation-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'validation-org',
       });
 
@@ -231,7 +231,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should truncate long strings', () => {
       DataCortex.init({
-        api_key: 'truncation-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'truncation-org',
       });
 
@@ -251,7 +251,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should handle number conversion', () => {
       DataCortex.init({
-        api_key: 'number-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'number-org',
       });
 
@@ -278,7 +278,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
     beforeEach(() => {
       setNetworkMode(false); // Use mocked network
       DataCortex.init({
-        api_key: 'boundary-test-key',
+        api_key: process.env.DC_API_KEY,
         org_name: 'boundary-org',
         errorLog: customErrorLog,
       });
@@ -388,7 +388,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should detect user agent information', () => {
       DataCortex.init({
-        api_key: 'user-agent-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'user-agent-org',
       });
 
@@ -420,7 +420,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should handle real API calls', async () => {
       DataCortex.init({
-        api_key: process.env.DC_API_KEY || 'test-real-api-key',
+        api_key: process.env.DC_API_KEY,
         org_name: 'real-api-org',
         errorLog: customErrorLog,
       });
@@ -437,8 +437,19 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
       await DataCortex.flush();
 
-      // Should have made real API calls (may result in errors with test keys)
-      assert.strictEqual(DataCortex.isReady(), true);
+      // Should have made real API calls
+      // With valid API keys, isReady() should be true
+      // With invalid API keys, isReady() will be false but that's expected
+      const isReady = DataCortex.isReady();
+      const apiKey = process.env.DC_API_KEY;
+      
+      // If we're using a test key that starts with 'test-', expect it to fail
+      if (apiKey && apiKey.startsWith('test-')) {
+        assert.strictEqual(isReady, false, 'Test API keys should result in isReady() being false');
+      } else {
+        // For real API keys, we expect success
+        assert.strictEqual(isReady, true, 'Real API keys should result in isReady() being true');
+      }
     });
 
     test('should handle API errors gracefully', async () => {
@@ -469,7 +480,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should handle edge case values', () => {
       DataCortex.init({
-        api_key: 'edge-case-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'edge-org',
       });
 
@@ -491,7 +502,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should clean up resources properly', () => {
       DataCortex.init({
-        api_key: 'cleanup-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'cleanup-org',
       });
 
@@ -505,7 +516,7 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
 
     test('should handle localStorage integration', () => {
       DataCortex.init({
-        api_key: 'storage-test',
+        api_key: process.env.DC_API_KEY,
         org_name: 'storage-org',
       });
 

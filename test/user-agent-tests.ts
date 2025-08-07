@@ -109,7 +109,7 @@ runner.test('User Agent Environment Setup', () => {
 
   // Initialize DataCortex with mocked network
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
     app_ver: '1.0.0',
   });
@@ -189,7 +189,7 @@ runner.test('Multiple Events with User Agent Context', () => {
 
   // Re-initialize DataCortex with mocked network
   DataCortex.init({
-    api_key: 'test-key-multi',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org-multi',
     app_ver: '1.0.0',
   });

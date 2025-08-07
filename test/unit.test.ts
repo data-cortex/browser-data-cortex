@@ -208,7 +208,7 @@ function assertThrows(fn: () => void, expectedMessage?: string): void {
 // Test cases
 runner.test('should initialize with required parameters', () => {
   const opts = {
-    api_key: process.env.DC_API_KEY || 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
     app_ver: '1.0.0',
   };
@@ -219,7 +219,7 @@ runner.test('should initialize with required parameters', () => {
 
 runner.test('should generate device tag', () => {
   const opts = {
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   };
 
@@ -231,7 +231,7 @@ runner.test('should generate device tag', () => {
 
 runner.test('should add and manage user tags', () => {
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   });
 
@@ -244,7 +244,7 @@ runner.test('should add and manage user tags', () => {
 
 runner.test('should track basic event', () => {
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   });
 
@@ -280,7 +280,7 @@ runner.test('should track basic event', () => {
 
 runner.test('should throw error for invalid event props', () => {
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   });
 
@@ -295,7 +295,7 @@ runner.test('should throw error for invalid event props', () => {
 
 runner.test('should truncate string properties to 32 characters', () => {
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   });
 
@@ -317,7 +317,7 @@ runner.test('should truncate string properties to 32 characters', () => {
 
 runner.test('should handle number conversion', () => {
   DataCortex.init({
-    api_key: 'test-key',
+    api_key: process.env.DC_API_KEY,
     org_name: 'test-org',
   });
 
