@@ -219,11 +219,11 @@ export function init(opts: InitOptions): void {
 
   g_eventList = _getStoredItem<InternalEvent[]>('dc.event_list') ?? [];
   g_nextIndex = _getStoredItem<number>('dc.next_index') ?? 0;
-  g_eventList.forEach((e) => {
+  for (const e of g_eventList) {
     if (e.event_index >= g_nextIndex) {
       g_nextIndex = e.event_index + 1;
     }
-  });
+  }
 
   g_logList = _getStoredItem<LogEventProps[]>('dc.log_list') ?? [];
 
@@ -351,50 +351,49 @@ function _internalEventAdd(props: InternalEvent): void {
   if (g_sessionKey) {
     props.group_tag = g_sessionKey;
   }
-  STRING_PROP_LIST.forEach((p) => {
+  for (const p of STRING_PROP_LIST) {
     if (p in props) {
-      const val = (props as unknown as Record<string, unknown>)[p];
+      const val = props[p];
       const s = val ? String(val) : '';
       if (s) {
-        (props as unknown as Record<string, unknown>)[p] = s.slice(0, 32);
+        props[p] = s.slice(0, 32);
       } else {
-        delete (props as unknown as Record<string, unknown>)[p];
+        props[p] = undefined;
       }
-    }
-  });
-  LONG_STRING_PROP_LIST.forEach((p) => {
-    if (p in props) {
-      const val = (props as unknown as Record<string, unknown>)[p];
-      const s = val ? String(val) : '';
-      if (s) {
-        (props as unknown as Record<string, unknown>)[p] = s.slice(0, 64);
-      } else {
-        delete (props as unknown as Record<string, unknown>)[p];
-      }
-    }
-  });
-  NUMBER_PROP_LIST.forEach((p) => {
-    if (p in props) {
-      let val = (props as unknown as Record<string, unknown>)[p];
-      if (typeof val !== 'number') {
-        val = parseFloat(val as string);
-      }
-      if (isFinite(val as number)) {
-        (props as unknown as Record<string, unknown>)[p] = val;
-      } else {
-        delete (props as unknown as Record<string, unknown>)[p];
-      }
-    }
-  });
-
-  const e: Record<string, unknown> = {};
-  for (let i = 0; i < EVENT_PROP_LIST.length; i++) {
-    const key = EVENT_PROP_LIST[i];
-    if (key in props) {
-      e[key] = (props as unknown as Record<string, unknown>)[key];
     }
   }
-  g_eventList.push(e as unknown as InternalEvent);
+  for (const p of LONG_STRING_PROP_LIST) {
+    if (p in props) {
+      const val = props[p];
+      const s = val ? String(val) : '';
+      if (s) {
+        props[p] = s.slice(0, 64);
+      } else {
+        props[p] = undefined;
+      }
+    }
+  }
+  for (const p of NUMBER_PROP_LIST) {
+    if (p in props) {
+      let val = props[p];
+      if (typeof val !== 'number') {
+        val = parseFloat(String(val));
+      }
+      if (typeof val === 'number' && isFinite(val)) {
+        props[p] = val;
+      } else {
+        props[p] = undefined;
+      }
+    }
+  }
+
+  const e: Record<string, unknown> = {};
+  for (const key of EVENT_PROP_LIST) {
+    if (key in props) {
+      e[key] = props[key];
+    }
+  }
+  g_eventList.push(e as InternalEvent);
   _setStoredItem('dc.event_list', g_eventList);
   _sendEventsLater();
 }
@@ -425,8 +424,7 @@ function _sendEvents(): void {
         first_event = e;
         bundle.events.push(e);
       } else if (
-        (first_event as unknown as Record<string, unknown>).session_key ===
-        (e as unknown as Record<string, unknown>).session_key
+        first_event.session_key === e.session_key
       ) {
         bundle.events.push(e);
       }
@@ -704,11 +702,11 @@ export function logEvent(props: LogEventProps): void {
   }
   for (const p in LOG_NUMBER_PROP_LIST) {
     if (p in props) {
-      let val = props[p] as number | string;
+      let val = props[p];
       if (typeof val !== 'number') {
-        val = parseFloat(val);
+        val = parseFloat(String(val));
       }
-      if (isFinite(val)) {
+      if (typeof val === 'number' && isFinite(val)) {
         props[p] = val;
       } else {
         props[p] = undefined;
@@ -716,9 +714,8 @@ export function logEvent(props: LogEventProps): void {
     }
   }
 
-  const e = {} as LogEventProps;
-  for (let i = 0; i < LOG_PROP_LIST.length; i++) {
-    const key = LOG_PROP_LIST[i];
+  const e: LogEventProps = {};
+  for (const key of LOG_PROP_LIST) {
     if (key in props) {
       e[key] = props[key];
     }
