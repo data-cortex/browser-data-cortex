@@ -10,7 +10,7 @@ import {
 
 const EVENT_SEND_COUNT = 10;
 const LOG_SEND_COUNT = 10;
-const DELAY_MS = 2 * 1000;
+const DELAY_MS: number = 2 * 1000;
 const API_BASE_URL = 'https://api.data-cortex.com';
 
 export interface InitOptions {
@@ -75,6 +75,7 @@ interface InternalEvent extends EventProps {
   from_tag?: string;
   to_tag?: string;
   to_list?: string[];
+  session_key?: string;
   [key: string]: unknown;
 }
 
@@ -107,13 +108,13 @@ type RequestCallback = (
   body?: string
 ) => void;
 
-const EVENT_PROP_LIST = [
+const EVENT_PROP_LIST: readonly string[] = [
   ...STRING_PROP_LIST,
   ...LONG_STRING_PROP_LIST,
   ...NUMBER_PROP_LIST,
   ...OTHER_PROP_LIST,
 ];
-const LOG_PROP_LIST = [
+const LOG_PROP_LIST: readonly string[] = [
   ...LOG_NUMBER_PROP_LIST,
   ...Object.keys(LOG_STRING_PROP_MAP),
   ...LOG_OTHER_PROP_LIST,
@@ -121,27 +122,27 @@ const LOG_PROP_LIST = [
 
 let g_apiBaseUrl: string = API_BASE_URL;
 
-let g_isReady: boolean = false;
-let g_isSending: boolean = false;
+let g_isReady = false;
+let g_isSending = false;
 let g_timeout: ReturnType<typeof setTimeout> | null = null;
 
 let g_apiKey: string | false = false;
 let g_orgName: string | false = false;
-let g_appVer: string = '0';
+let g_appVer = '0';
 
 let g_userTag: string | null = null;
 let g_eventList: InternalEvent[] = [];
-let g_hasSendInstall: boolean = false;
-let g_lastDAUTime: number = 0;
+let g_hasSendInstall = false;
+let g_lastDAUTime = 0;
 let g_sessionKey: string | false = false;
 let g_deviceTag: string | false = false;
-let g_nextIndex: number = 0;
+let g_nextIndex = 0;
 
 let g_logTimeout: ReturnType<typeof setTimeout> | null = null;
-let g_isLogSending: boolean = false;
-let g_logDelayCount: number = 0;
+let g_isLogSending = false;
+let g_logDelayCount = 0;
 
-let g_delayCount: number = 0;
+let g_delayCount = 0;
 
 const g_defaultBundle: DefaultBundle = {};
 
@@ -186,10 +187,10 @@ function _loadDeviceTag(): string {
 function _generateRandomString(): string {
   let text = '';
   if (window.crypto?.getRandomValues) {
-    const array = new Uint32Array(8);
+    const array: Uint32Array = new Uint32Array(8);
     window.crypto.getRandomValues(array);
-    for (let i = 0; i < array.length; i++) {
-      text += array[i].toString(36);
+    for (const value of array) {
+      text += value.toString(36);
     }
   } else {
     while (text.length < 32) {
@@ -473,21 +474,22 @@ function _request(args: RequestOptions, done: RequestCallback): void {
     }
   }
 
-  const method = args.method;
+  const {method} = args;
 
   const default_headers: Record<string, string> = {
     Accept: 'application/json',
   };
+  const { body: requestBody } = args;
   let body: string | FormData | null = null;
-  if (args.body instanceof FormData) {
-    body = args.body;
-  } else if (args.body) {
-    body = JSON.stringify(args.body);
+  if (requestBody instanceof FormData) {
+    body = requestBody;
+  } else if (requestBody) {
+    body = JSON.stringify(requestBody);
     default_headers['Content-Type'] = 'text/plain';
   }
   const headers = Object.assign({}, default_headers, args.headers);
 
-  const url = args.url;
+  const {url} = args;
 
   // Build fetch options
   const fetchOptions: RequestInit = {
@@ -516,7 +518,7 @@ function _request(args: RequestOptions, done: RequestCallback): void {
         clearTimeout(timeoutId);
       }
 
-      const status = response.status;
+      const {status} = response;
       let responseBody = '';
 
       try {
@@ -557,9 +559,9 @@ function _removeEvents(event_list: InternalEvent[]): void {
 }
 function _setupDefaultBundle(): void {
   function regexGet(haystack: string, regex: RegExp, def: string): string {
-    let ret = def;
-    const matches = haystack.match(regex);
-    if (matches && matches.length > 1) {
+    let ret: string = def;
+    const matches: RegExpMatchArray | null = haystack.match(regex);
+    if (matches && matches.length > 1 && matches[1] !== undefined) {
       ret = matches[1];
     }
     return ret;
@@ -569,80 +571,80 @@ function _setupDefaultBundle(): void {
 
   let os = 'unknown';
   let os_ver = 'unknown';
-  if (ua.indexOf('Win') !== -1) {
+  if (ua.includes('Win')) {
     os = 'windows';
     os_ver = regexGet(ua, /Windows NT ([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('iPhone OS') !== -1) {
+  } else if (ua.includes('iPhone OS')) {
     os = 'ios';
     os_ver = regexGet(ua, /iPhone OS ([^ ;)]*)/, 'unknown');
     os_ver = os_ver.replace(/_/g, '.');
-  } else if (ua.indexOf('iPad') !== -1) {
+  } else if (ua.includes('iPad')) {
     os = 'ios';
     os_ver = regexGet(ua, /CPU OS ([^ ;)]*)/, 'unknown');
     os_ver = os_ver.replace(/_/g, '.');
-  } else if (ua.indexOf('Mac OS X') !== -1) {
+  } else if (ua.includes('Mac OS X')) {
     os = 'mac';
     os_ver = regexGet(ua, /Mac OS X ([^ ;)]*)/, 'unknown');
     os_ver = os_ver.replace(/_/g, '.');
     os_ver = os_ver.replace(/\.0$/, '');
-  } else if (ua.indexOf('Android') !== -1) {
+  } else if (ua.includes('Android')) {
     os = 'android';
     os_ver = regexGet(ua, /Android ([^ ;)]*)/, 'unknown');
     os_ver = os_ver.replace(/_/g, '.');
-  } else if (ua.indexOf('X11') !== -1) {
+  } else if (ua.includes('X11')) {
     os = 'unix';
-  } else if (ua.indexOf('Linux') !== -1) {
+  } else if (ua.includes('Linux')) {
     os = 'linux';
   }
 
   let browser = 'unknown';
   let browser_ver = 'unknown';
-  if (ua.indexOf('Edge') !== -1) {
+  if (ua.includes('Edge')) {
     browser = 'edge';
     browser_ver = regexGet(ua, /Edge\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('Chrome') !== -1) {
+  } else if (ua.includes('Chrome')) {
     browser = 'chrome';
     browser_ver = regexGet(ua, /Chrome\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('CriOS') !== -1) {
+  } else if (ua.includes('CriOS')) {
     browser = 'chrome';
     browser_ver = regexGet(ua, /CriOS\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('Firefox') !== -1) {
+  } else if (ua.includes('Firefox')) {
     browser = 'firefox';
     browser_ver = regexGet(ua, /Firefox\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('Android') !== -1) {
+  } else if (ua.includes('Android')) {
     browser = 'android';
     browser_ver = regexGet(ua, /Version\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('Safari') !== -1) {
+  } else if (ua.includes('Safari')) {
     browser = 'safari';
     browser_ver = regexGet(ua, /Version\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('Trident') !== -1) {
+  } else if (ua.includes('Trident')) {
     browser = 'ie';
     browser_ver = regexGet(ua, /rv:([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('MSIE') !== -1) {
+  } else if (ua.includes('MSIE')) {
     browser = 'ie';
     browser_ver = regexGet(ua, /MSIE ([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('MessengerForiOS') !== -1) {
+  } else if (ua.includes('MessengerForiOS')) {
     browser = 'fbmessenger';
     browser_ver = regexGet(ua, /FBAV\/([^ ;)]*)/, 'unknown');
-  } else if (ua.indexOf('FB_IAB/MESSENGER') !== -1) {
+  } else if (ua.includes('FB_IAB/MESSENGER')) {
     browser = 'fbmessenger';
     browser_ver = regexGet(ua, /FBAV\/([^ ;)]*)/, 'unknown');
   }
 
   let device_type = 'desktop';
-  if (ua.indexOf('iPod') !== -1) {
+  if (ua.includes('iPod')) {
     device_type = 'ipod';
-  } else if (ua.indexOf('iPhone') !== -1) {
+  } else if (ua.includes('iPhone')) {
     device_type = 'iphone';
-  } else if (ua.indexOf('iPad') !== -1) {
+  } else if (ua.includes('iPad')) {
     device_type = 'ipad';
-  } else if (ua.indexOf('Android') !== -1) {
-    if (ua.indexOf('Mobile') === -1) {
+  } else if (ua.includes('Android')) {
+    if (!ua.includes('Mobile')) {
       device_type = 'android_tablet';
     } else {
       device_type = 'android';
     }
-  } else if (ua.indexOf('Mobile') !== -1) {
+  } else if (ua.includes('Mobile')) {
     device_type = 'mobile';
   }
 
@@ -670,10 +672,10 @@ export function log(...args: unknown[]): void {
       try {
         log_line += JSON.stringify(arg);
       } catch {
-        log_line += arg;
+        log_line += String(arg);
       }
     } else {
-      log_line += arg;
+      log_line += String(arg);
     }
   }
   logEvent({ log_line });
@@ -695,7 +697,7 @@ export function logEvent(props: LogEventProps): void {
       }
     }
   }
-  for (const p in LOG_NUMBER_PROP_LIST) {
+  for (const p of LOG_NUMBER_PROP_LIST) {
     if (p in props) {
       let val = props[p];
       if (typeof val !== 'number') {
@@ -735,7 +737,7 @@ function _isError(e: unknown): e is Error {
     typeof (e as Error).message === 'string'
   );
 }
-function _sendLogsLater(delay: number = 0): void {
+function _sendLogsLater(delay = 0): void {
   if (!g_logTimeout && g_isReady && !g_isLogSending) {
     g_logTimeout = setTimeout(() => {
       g_logTimeout = null;
@@ -745,6 +747,7 @@ function _sendLogsLater(delay: number = 0): void {
 }
 interface LogBundle extends Omit<DefaultBundle, 'events'> {
   events?: LogEventProps[];
+  user_tag?: string | false;
 }
 
 function _sendLogs(): void {
