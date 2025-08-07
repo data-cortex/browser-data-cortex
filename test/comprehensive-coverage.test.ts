@@ -100,6 +100,12 @@ const originalClearInterval = clearInterval;
   originalClearInterval(id);
 };
 
+// Also override global timer functions (in case the library uses them)
+(global as any).setTimeout = (global as any).window.setTimeout;
+(global as any).clearTimeout = (global as any).window.clearTimeout;
+(global as any).setInterval = (global as any).window.setInterval;
+(global as any).clearInterval = (global as any).window.clearInterval;
+
 // Function to clean up all timers
 function cleanupTimers(): void {
   for (const id of activeTimeouts) {
@@ -442,13 +448,21 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
       // With invalid API keys, isReady() will be false but that's expected
       const isReady = DataCortex.isReady();
       const apiKey = process.env.DC_API_KEY;
-      
+
       // If we're using a test key that starts with 'test-', expect it to fail
       if (apiKey && apiKey.startsWith('test-')) {
-        assert.strictEqual(isReady, false, 'Test API keys should result in isReady() being false');
+        assert.strictEqual(
+          isReady,
+          false,
+          'Test API keys should result in isReady() being false'
+        );
       } else {
         // For real API keys, we expect success
-        assert.strictEqual(isReady, true, 'Real API keys should result in isReady() being true');
+        assert.strictEqual(
+          isReady,
+          true,
+          'Real API keys should result in isReady() being true'
+        );
       }
     });
 
@@ -500,18 +514,33 @@ describe('Comprehensive DataCortex Coverage Tests', () => {
       assert.ok(eventList.length > 0);
     });
 
-    test('should clean up resources properly', () => {
+    test('should clean up resources properly with destroy()', () => {
+      const initialIntervals = activeIntervals.size;
+
       DataCortex.init({
         api_key: process.env.DC_API_KEY,
         org_name: 'cleanup-org',
       });
 
+      // Verify DAU interval was created
+      assert.strictEqual(
+        activeIntervals.size,
+        initialIntervals + 1,
+        'DAU interval should be created during init'
+      );
+
       DataCortex.event({ kingdom: 'cleanup-test' });
       DataCortex.flush();
 
-      // Verify cleanup doesn't throw errors
-      cleanupTimers();
-      assert.ok(true); // If we get here, cleanup worked
+      // Call destroy() to clean up the DAU interval
+      DataCortex.destroy();
+
+      // Verify the DAU interval was cleaned up
+      assert.strictEqual(
+        activeIntervals.size,
+        initialIntervals,
+        'DAU interval should be cleaned up after destroy()'
+      );
     });
 
     test('should handle localStorage integration', () => {

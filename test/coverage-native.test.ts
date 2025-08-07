@@ -66,6 +66,12 @@ const originalClearInterval = clearInterval;
   originalClearInterval(id);
 };
 
+// Also override global timer functions (in case the library uses them)
+(global as any).setTimeout = (global as any).window.setTimeout;
+(global as any).clearTimeout = (global as any).window.clearTimeout;
+(global as any).setInterval = (global as any).window.setInterval;
+(global as any).clearInterval = (global as any).window.clearInterval;
+
 // Function to clean up all timers
 function cleanupTimers(): void {
   // Clear all active timeouts
@@ -89,8 +95,7 @@ function waitForNetwork(ms: number = 2000): Promise<void> {
 }
 
 // Import DataCortex
-import '../dist/browser-data-cortex.min.js';
-const DataCortex = (global as any).DataCortex;
+const DataCortex = require('../dist/browser-data-cortex.min.js');
 
 describe('DataCortex Coverage Tests with Real API', () => {
   let errorLogCalls: any[][] = [];
@@ -536,38 +541,130 @@ describe('DataCortex Coverage Tests with Real API', () => {
   });
 
   describe('Timer and Network Cleanup Verification', () => {
-    test('should properly clean up timers and network requests', async () => {
+    test('should properly clean up DAU interval when destroy() is called', async () => {
       const initialTimeouts = activeTimeouts.size;
       const initialIntervals = activeIntervals.size;
 
+      // Initialize DataCortex - this should create the DAU interval
       DataCortex.init({
         api_key: process.env.DC_API_KEY,
         org_name: 'cleanup-coverage-org',
         errorLog: customErrorLog,
       });
 
-      // Generate some activity that creates timers
+      // Wait a moment for initialization to complete
+      await waitForNetwork(100);
+
+      // Verify that the DAU interval was created
+      const intervalsAfterInit = activeIntervals.size;
+      assert.strictEqual(
+        intervalsAfterInit,
+        initialIntervals + 1,
+        'DAU interval should be created during initialization'
+      );
+
+      // Generate some activity that might create additional timers
       DataCortex.event({ kingdom: 'cleanup-test' });
       DataCortex.log('Cleanup test log');
       DataCortex.flush();
 
-      // Wait for network and cleanup
+      // Wait for any pending network operations
+      await waitForNetwork(1000);
+
+      // Now call destroy() - this should clean up the DAU interval
+      DataCortex.destroy();
+
+      // Verify that the DAU interval was cleaned up
+      assert.strictEqual(
+        activeIntervals.size,
+        initialIntervals,
+        'DAU interval should be cleaned up after destroy() is called'
+      );
+
+      // Any remaining timeouts should be from network operations, not from the library's core timers
+      console.log(`Remaining timeouts after destroy(): ${activeTimeouts.size}`);
+      console.log(
+        `Remaining intervals after destroy(): ${activeIntervals.size}`
+      );
+
+      console.log('✅ DataCortex.destroy() properly cleaned up DAU interval');
+    });
+
+    test('should handle multiple destroy() calls gracefully', async () => {
+      const initialIntervals = activeIntervals.size;
+
+      // Initialize DataCortex
+      DataCortex.init({
+        api_key: process.env.DC_API_KEY,
+        org_name: 'multi-destroy-test',
+        errorLog: customErrorLog,
+      });
+
+      await waitForNetwork(100);
+
+      // Verify DAU interval was created
+      assert.strictEqual(
+        activeIntervals.size,
+        initialIntervals + 1,
+        'DAU interval should be created'
+      );
+
+      // Call destroy() multiple times
+      DataCortex.destroy();
+      DataCortex.destroy();
+      DataCortex.destroy();
+
+      // Should still be properly cleaned up
+      assert.strictEqual(
+        activeIntervals.size,
+        initialIntervals,
+        'Multiple destroy() calls should not cause issues'
+      );
+
+      console.log('✅ Multiple destroy() calls handled gracefully');
+    });
+
+    test('should not leave any timers after proper cleanup sequence', async () => {
+      const initialTimeouts = activeTimeouts.size;
+      const initialIntervals = activeIntervals.size;
+
+      // Full lifecycle test
+      DataCortex.init({
+        api_key: process.env.DC_API_KEY,
+        org_name: 'full-lifecycle-test',
+        errorLog: customErrorLog,
+      });
+
+      // Do some work
+      DataCortex.event({ kingdom: 'lifecycle-test' });
+      DataCortex.log('Lifecycle test log');
+
+      // Flush to send data
+      await DataCortex.flush();
+
+      // Wait for network operations to complete
       await waitForNetwork(2000);
+
+      // Properly destroy the library
+      DataCortex.destroy();
+
+      // Now manually clean up any remaining network-related timers
+      // (these would be from fetch timeouts, not from the library's core functionality)
       cleanupTimers();
 
-      // Verify cleanup
+      // Verify complete cleanup
       assert.strictEqual(
         activeTimeouts.size,
         0,
-        'All timeouts should be cleaned up'
+        'No timeouts should remain after proper cleanup sequence'
       );
       assert.strictEqual(
         activeIntervals.size,
         0,
-        'All intervals should be cleaned up'
+        'No intervals should remain after proper cleanup sequence'
       );
 
-      console.log('Timer and network cleanup verification completed');
+      console.log('✅ Complete cleanup sequence verified - no stale timers');
     });
   });
 });
