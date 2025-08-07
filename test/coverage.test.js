@@ -1144,6 +1144,5 @@ describe('DataCortex Library Coverage Tests', () => {
       global.XMLHttpRequest = originalXHR;
       global.window.XMLHttpRequest = originalXHR;
     });
-
   });
 });

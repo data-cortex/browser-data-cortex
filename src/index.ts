@@ -410,9 +410,8 @@ function _cleanupString(val: unknown, max_len: number): string | undefined {
   }
   if (ret && ret.length > 0) {
     ret = ret.slice(0, max_len);
-    return ret;
   }
-  return undefined;
+  return ret;
 }
 function _internalEventAdd(e: InternalEvent): void {
   e.event_index = g_nextIndex++;

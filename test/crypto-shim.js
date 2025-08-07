@@ -1,6 +1,6 @@
 /**
  * Crypto API shim for Node.js test environment
- * 
+ *
  * This module provides crypto.getRandomValues for testing.
  * Only modern browsers with native crypto.getRandomValues are supported.
  */

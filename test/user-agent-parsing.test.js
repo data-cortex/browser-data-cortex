@@ -17,8 +17,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.0.0',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Chrome Desktop (macOS) - ~8% market share
@@ -30,8 +30,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.0.0',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Safari Desktop (macOS) - ~6% market share
@@ -43,8 +43,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'safari',
       browser_ver: '17.1',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Chrome Mobile (Android) - ~25% market share
@@ -56,8 +56,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.0.0',
       device_type: 'android',
-      device_family: 'mobile'
-    }
+      device_family: 'mobile',
+    },
   },
 
   // Safari Mobile (iOS iPhone) - ~15% market share
@@ -69,8 +69,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'safari',
       browser_ver: '17.1',
       device_type: 'iphone',
-      device_family: 'mobile'
-    }
+      device_family: 'mobile',
+    },
   },
 
   // Safari Mobile (iOS iPad) - ~8% market share
@@ -82,8 +82,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'safari',
       browser_ver: '17.1',
       device_type: 'ipad',
-      device_family: 'tablet'
-    }
+      device_family: 'tablet',
+    },
   },
 
   // Chrome Mobile (iOS) - ~5% market share
@@ -95,8 +95,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.6099.119',
       device_type: 'iphone',
-      device_family: 'mobile'
-    }
+      device_family: 'mobile',
+    },
   },
 
   // Firefox Desktop (Windows) - ~3% market share
@@ -108,8 +108,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'firefox',
       browser_ver: '120.0',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Legacy Edge (EdgeHTML) - Historical
@@ -121,8 +121,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'edge',
       browser_ver: '18.19041',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Internet Explorer 11 - Legacy but still in use
@@ -134,8 +134,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'ie',
       browser_ver: '11.0',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Chrome on Linux - ~2% market share
@@ -147,8 +147,8 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.0.0',
       device_type: 'desktop',
-      device_family: 'desktop'
-    }
+      device_family: 'desktop',
+    },
   },
 
   // Android Tablet (Chrome)
@@ -160,9 +160,9 @@ const POPULAR_USER_AGENTS = {
       browser: 'chrome',
       browser_ver: '120.0.0.0',
       device_type: 'android_tablet',
-      device_family: 'tablet'
-    }
-  }
+      device_family: 'tablet',
+    },
+  },
 };
 
 /**
@@ -171,7 +171,9 @@ const POPULAR_USER_AGENTS = {
 async function testUserAgentParsing() {
   console.log('🔍 COMPREHENSIVE USER AGENT PARSING TESTS');
   console.log('==========================================');
-  console.log(`Testing ${Object.keys(POPULAR_USER_AGENTS).length} popular user agent strings\n`);
+  console.log(
+    `Testing ${Object.keys(POPULAR_USER_AGENTS).length} popular user agent strings\n`
+  );
 
   let totalTests = 0;
   let passedTests = 0;
@@ -184,7 +186,7 @@ async function testUserAgentParsing() {
     // Create a new JSDOM instance for each test
     const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
       url: 'https://example.com',
-      userAgent: testData.ua
+      userAgent: testData.ua,
     });
 
     // Set up globals
@@ -193,12 +195,12 @@ async function testUserAgentParsing() {
     Object.defineProperty(global, 'navigator', {
       value: dom.window.navigator,
       writable: true,
-      configurable: true
+      configurable: true,
     });
     global.localStorage = {
       getItem: () => null,
       setItem: () => {},
-      removeItem: () => {}
+      removeItem: () => {},
     };
 
     try {
@@ -219,27 +221,27 @@ async function testUserAgentParsing() {
         return Promise.resolve({
           ok: true,
           status: 200,
-          json: () => Promise.resolve({ success: true })
+          json: () => Promise.resolve({ success: true }),
         });
       };
 
       // Initialize DataCortex
       DataCortex.init({
         api_key: 'test_key_1234567890123456789012345678',
-        org_name: 'test_org'
+        org_name: 'test_org',
       });
 
       // Create a test event
       DataCortex.event({
         kingdom: 'test',
-        phylum: 'ua_parsing'
+        phylum: 'ua_parsing',
       });
 
       // Trigger flush to capture the data
       DataCortex.flush();
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Verify the parsed values
       const results = {
@@ -248,7 +250,7 @@ async function testUserAgentParsing() {
         browser: capturedData?.browser || 'unknown',
         browser_ver: capturedData?.browser_ver || 'unknown',
         device_type: capturedData?.device_type || 'unknown',
-        device_family: capturedData?.device_family || 'unknown'
+        device_family: capturedData?.device_family || 'unknown',
       };
 
       console.log(`   Expected: ${JSON.stringify(testData.expected)}`);
@@ -261,7 +263,9 @@ async function testUserAgentParsing() {
       for (const [key, expectedValue] of Object.entries(testData.expected)) {
         if (results[key] !== expectedValue) {
           testPassed = false;
-          failures.push(`${key}: expected "${expectedValue}", got "${results[key]}"`);
+          failures.push(
+            `${key}: expected "${expectedValue}", got "${results[key]}"`
+          );
         }
       }
 
@@ -276,10 +280,9 @@ async function testUserAgentParsing() {
           ua: testData.ua,
           expected: testData.expected,
           actual: results,
-          failures: failures
+          failures: failures,
         });
       }
-
     } catch (error) {
       totalTests++;
       console.log(`   ❌ ERROR: ${error.message}\n`);
@@ -288,7 +291,7 @@ async function testUserAgentParsing() {
         ua: testData.ua,
         expected: testData.expected,
         actual: null,
-        failures: [`Error: ${error.message}`]
+        failures: [`Error: ${error.message}`],
       });
     }
 
@@ -306,7 +309,9 @@ async function testUserAgentParsing() {
   console.log(`Total tests: ${totalTests}`);
   console.log(`Passed: ${passedTests}`);
   console.log(`Failed: ${failedTests.length}`);
-  console.log(`Success rate: ${((passedTests / totalTests) * 100).toFixed(1)}%\n`);
+  console.log(
+    `Success rate: ${((passedTests / totalTests) * 100).toFixed(1)}%\n`
+  );
 
   if (failedTests.length > 0) {
     console.log('❌ FAILED TESTS DETAILS:');
@@ -323,7 +328,7 @@ async function testUserAgentParsing() {
     totalTests,
     passedTests,
     failedTests: failedTests.length,
-    successRate: (passedTests / totalTests) * 100
+    successRate: (passedTests / totalTests) * 100,
   };
 }
 
@@ -332,7 +337,7 @@ export { testUserAgentParsing, POPULAR_USER_AGENTS };
 
 // Run tests if this file is executed directly
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  testUserAgentParsing().then(results => {
+  testUserAgentParsing().then((results) => {
     if (results.failedTests > 0) {
       process.exit(1);
     }
