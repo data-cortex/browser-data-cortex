@@ -70,8 +70,7 @@ Object.defineProperty((global as any).navigator, 'userAgent', {
 (global as any).window.clearInterval = (id: number) => {};
 
 // Import DataCortex
-import '../dist/browser-data-cortex.min.js';
-const DataCortex = (global as any).DataCortex;
+const DataCortex = require('../dist/browser-data-cortex.min.js');
 
 // Test runner with coverage tracking
 class CoverageTestRunner {

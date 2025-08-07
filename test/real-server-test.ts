@@ -33,8 +33,7 @@ if (!(global as any).navigator) {
 // Crypto is now handled by crypto-shim.js
 
 // Import DataCortex after setting up environment
-import '../dist/browser-data-cortex.min.js';
-const DataCortex = (global as any).DataCortex;
+const DataCortex = require('../dist/browser-data-cortex.min.js');
 
 console.log('🧪 REAL SERVER TEST: DataCortex API Key Validation');
 console.log('==================================================');

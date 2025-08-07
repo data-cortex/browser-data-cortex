@@ -114,8 +114,7 @@ function cleanupTimers(): void {
 }
 
 // Import DataCortex
-import '../dist/browser-data-cortex.min.js';
-const DataCortex = (global as any).DataCortex;
+const DataCortex = require('../dist/browser-data-cortex.min.js');
 
 describe('Comprehensive DataCortex Coverage Tests', () => {
   let errorLogCalls: any[][] = [];
