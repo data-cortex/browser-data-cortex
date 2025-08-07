@@ -363,7 +363,7 @@ export function log(...args: unknown[]): void {
     }
 
     if (_isError(arg)) {
-      log_line += `${arg.message} %{arg.stack}`;
+      log_line += `${arg.message} ${arg.stack}`;
     } else if (typeof arg === 'object') {
       try {
         log_line += JSON.stringify(arg);
@@ -408,10 +408,11 @@ function _cleanupString(val: unknown, max_len: number): string | undefined {
   } else if (val !== null && val !== undefined) {
     ret = String(val);
   }
-  if (ret) {
+  if (ret && ret.length > 0) {
     ret = ret.slice(0, max_len);
+    return ret;
   }
-  return ret;
+  return undefined;
 }
 function _internalEventAdd(e: InternalEvent): void {
   e.event_index = g_nextIndex++;
@@ -653,7 +654,10 @@ function _setupDefaultBundle(): void {
 
   let browser = 'unknown';
   let browser_ver = 'unknown';
-  if (ua.includes('Edge')) {
+  if (ua.includes('Edg/')) {
+    browser = 'edge';
+    browser_ver = regexGet(ua, /Edg\/([^ ;)]*)/, 'unknown');
+  } else if (ua.includes('Edge')) {
     browser = 'edge';
     browser_ver = regexGet(ua, /Edge\/([^ ;)]*)/, 'unknown');
   } else if (ua.includes('Chrome')) {
